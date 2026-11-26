@@ -29,6 +29,6 @@ export const LAYOUT_BY_CATEGORY: Record<Category, LayoutName> = {
 };
 
 /** How the widget arranges itself inside each layout. */
-export const WIDGET_VARIANT = { A: 'split', B: 'stack', C: 'compact' } as const satisfies Record<LayoutName, 'split' | 'stack' | 'compact'>;
+export const WIDGET_VARIANT = { A: 'split', B: 'split', C: 'compact' } as const satisfies Record<LayoutName, 'split' | 'stack' | 'compact'>;
 
 export const layoutFor = (category: Category): LayoutName => LAYOUT_BY_CATEGORY[category];

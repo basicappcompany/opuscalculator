@@ -4,9 +4,9 @@
 import 'katex/dist/katex.min.css';
 import type { CalculatorConfig } from '../../../lib/types';
 import type { LinkSet } from '../../../lib/linking';
-import { renderLatex, renderMathText, splitIntro } from '../../../lib/text';
+import { renderLatex, renderMathText, leadIntro } from '../../../lib/text';
 import AdSlot from '../AdSlot.astro';
-import CalculatorToolbar from '../CalculatorToolbar.astro';
+import CalculatorHeader from '../CalculatorHeader.astro';
 import Disclaimer from '../../Disclaimer.astro';
 import FaqAccordion from '../FaqAccordion.astro';
 import References from '../References.astro';
@@ -17,20 +17,16 @@ interface Props {
   related: LinkSet;
 }
 const { config, related } = Astro.props;
-const { lede, rest } = splitIntro(config.intro);
+// The first sentence goes in the header; the rest of the intro is the About section below the tool.
+const { more: rest } = leadIntro(config.intro);
 const formulaHtml = config.formulaLatex ? renderLatex(config.formulaLatex, true) : null;
 ---
 
 <article>
-  <header class="mb-6 max-w-3xl">
-    <h1 class="text-3xl font-bold tracking-tight sm:text-4xl">{config.h1}</h1>
-    <p class="mt-3 text-lg leading-relaxed text-muted">{lede}</p>
-  </header>
+  <CalculatorHeader config={config} />
 
   <div class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_17rem]">
     <div class="min-w-0">
-      <CalculatorToolbar config={config} />
-
       <slot name="widget" />
 
       <Disclaimer category={config.category} lastUpdated={config.lastUpdated} />

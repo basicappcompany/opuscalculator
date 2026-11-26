@@ -5,9 +5,9 @@
 import type { CalculatorConfig } from '../../../lib/types';
 import type { LinkSet } from '../../../lib/linking';
 import type { ScenarioTable as ScenarioTableData } from '../../../lib/scenarios';
-import { splitIntro } from '../../../lib/text';
+import { leadIntro } from '../../../lib/text';
 import AdSlot from '../AdSlot.astro';
-import CalculatorToolbar from '../CalculatorToolbar.astro';
+import CalculatorHeader from '../CalculatorHeader.astro';
 import Disclaimer from '../../Disclaimer.astro';
 import FaqAccordion from '../FaqAccordion.astro';
 import References from '../References.astro';
@@ -20,16 +20,12 @@ interface Props {
   related: LinkSet;
 }
 const { config, scenarios, related } = Astro.props;
-const { lede, rest } = splitIntro(config.intro);
+// The first sentence goes in the header; the rest of the intro is the About section below the tool.
+const { more: rest } = leadIntro(config.intro);
 ---
 
 <article class="mx-auto max-w-4xl">
-  <header class="mb-5 text-center">
-    <h1 class="text-3xl font-bold tracking-tight sm:text-4xl">{config.h1}</h1>
-    <p class="mx-auto mt-3 max-w-2xl text-lg leading-relaxed text-muted">{lede}</p>
-  </header>
-
-  <CalculatorToolbar config={config} />
+  <CalculatorHeader config={config} centered />
 
   <slot name="widget" />
 

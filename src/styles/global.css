@@ -162,3 +162,26 @@ body {
     animation: none;
   }
 }
+
+/* Actions on the result card (Copy, Share result). Dark glass over the gradient keeps the white text readable on any result colour. */
+.result-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid rgb(255 255 255 / 0.55);
+  border-radius: var(--radius-md);
+  background: rgb(0 0 0 / 0.26);
+  color: var(--color-hero-fg);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+.result-btn:hover {
+  background: rgb(0 0 0 / 0.4);
+}
+.result-btn:focus-visible {
+  outline: 3px solid var(--color-hero-fg);
+  outline-offset: 2px;
+}

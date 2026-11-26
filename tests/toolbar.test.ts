@@ -1,8 +1,13 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
+import { leadIntro } from '../src/lib/text';
 import { TOOLBAR_HOOKS, checkDist, isEmbedPath, toolbarProblems } from '../src/lib/audit';
 import {
   MAX_SHARE_VALUE_LENGTH,
+  MCP_SETUP,
+  MCP_URL,
+  aiPrompt,
+  changedInputs,
   citationFormats,
   citationLines,
   embedPath,
@@ -179,5 +184,36 @@ describe('citation styles and share links for the dialogs', () => {
     const src = 'https://opuscalculator.com/embed/bmi-calculator/';
     expect(embedSnippet(src, 'T')).toContain('width="100%" height="640"');
     expect(embedSnippet(src, 'T', 760, 480)).toContain('width="480" height="760"');
+  });
+});
+
+describe('the page header and the AI prompt (UX rebuild)', () => {
+  it('splits the intro into one lead sentence and the rest, dropping nothing', () => {
+    const intro = 'A person who weighs 70 kg has a BMI of 22.9. BMI is a simple ratio. It helps screening.';
+    expect(leadIntro(intro)).toEqual({ lead: 'A person who weighs 70 kg has a BMI of 22.9.', more: 'BMI is a simple ratio. It helps screening.' });
+    expect(`${leadIntro(intro).lead} ${leadIntro(intro).more}`).toBe(intro);
+    expect(leadIntro('Only one sentence.')).toEqual({ lead: 'Only one sentence.', more: '' });
+  });
+
+  it('finds the inputs that differ from the defaults, ignoring long values', () => {
+    expect(changedInputs({ weight: '85', height: '175', note: 'x'.repeat(50) }, { weight: '70', height: '175' })).toEqual({ weight: '85' });
+    expect(changedInputs({ weight: '70' }, { weight: '70' })).toEqual({});
+  });
+
+  it('writes a prompt that names the MCP server, the tool, the slug, the numbers and the source', () => {
+    const url = 'https://opuscalculator.com/calculators/bmi-calculator/';
+    const withNumbers = aiPrompt('BMI Calculator', 'bmi-calculator', url, { weight: '85' });
+    expect(withNumbers).toContain(MCP_URL);
+    expect(withNumbers).toContain('calculate');
+    expect(withNumbers).toContain('slug "bmi-calculator"');
+    expect(withNumbers).toContain('{"weight":"85"}');
+    expect(withNumbers).toContain(`cite ${url}`);
+    expect(aiPrompt('BMI Calculator', 'bmi-calculator', url)).toContain('the calculator defaults');
+  });
+
+  it('gives set-up snippets that carry the real address and valid JSON', () => {
+    expect(MCP_URL).toBe('https://opuscalculator.com/mcp');
+    expect(MCP_SETUP.claudeCode).toBe('claude mcp add --transport http opus-calculator https://opuscalculator.com/mcp');
+    expect(JSON.parse(MCP_SETUP.json).mcpServers['opus-calculator']).toEqual({ type: 'http', url: MCP_URL });
   });
 });
