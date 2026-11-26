@@ -1,0 +1,48 @@
+---
+// The frameable copy of a calculator (plan/PROMPT 19, "Embed code"). The calculator alone, with a link back to the real
+// page. It is never indexed, and its canonical is the real calculator page, so it cannot compete with it (CLAUDE.md rule 7).
+// Only /embed/* may be framed: public/_headers drops X-Frame-Options and sets frame-ancestors for that path alone.
+import '../styles/global.css';
+import { SITE_NAME } from '../lib/seo';
+
+interface Props {
+  title: string;
+  description: string;
+  /** Path of the real calculator page this copy points back to. */
+  canonicalPath: string;
+}
+const { title, description, canonicalPath } = Astro.props;
+const canonical = new URL(canonicalPath, Astro.site).href;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script is:inline>
+      try {
+        var t = localStorage.getItem('opus-theme');
+        if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t);
+      } catch (e) {}
+    </script>
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <meta name="robots" content="noindex, follow" />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="generator" content={Astro.generator} />
+  </head>
+  <body>
+    <main class="mx-auto max-w-3xl p-3">
+      <slot />
+      <p class="mt-3 text-center text-sm text-muted">
+        Powered by{' '}
+        <a href={canonical} target="_top" class="font-medium text-accent underline underline-offset-2">
+          {SITE_NAME}
+        </a>
+      </p>
+    </main>
+  </body>
+</html>

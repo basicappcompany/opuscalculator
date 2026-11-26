@@ -15,6 +15,14 @@
   X-Frame-Options: DENY
   Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://plausible.io; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://plausible.io; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'
 
+# The embeddable copy of each calculator (plan/PROMPT 19) is the only thing other sites may frame. The site-wide
+# X-Frame-Options and CSP are detached here and the same CSP is set again with frame-ancestors open; scripts/check-security.ts
+# fails the build if this block drifts from the site CSP or if any other path is made frameable.
+/embed/*
+  ! X-Frame-Options
+  ! Content-Security-Policy
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://plausible.io; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://plausible.io; object-src 'none'; frame-ancestors *; base-uri 'self'; form-action 'self'
+
 # Hashed build assets never change under the same name, so browsers and Cloudflare may keep them for a year.
 /_astro/*
   Cache-Control: public, max-age=31536000, immutable

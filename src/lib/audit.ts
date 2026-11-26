@@ -28,6 +28,9 @@ export function extractLinks(html: string, from = '/'): string[] {
   return [...out];
 }
 
+/** The frameable copy of a calculator (plan/PROMPT 19). */
+export const isEmbedPath = (path: string): boolean => path.startsWith('/embed/');
+
 export const hasNoindex = (html: string): boolean => /<meta\s+name="robots"\s+content="[^"]*noindex/i.test(html);
 
 export interface LinkAuditInput {
@@ -66,7 +69,8 @@ export function auditLinks(input: LinkAuditInput, minInbound = 3): LinkAuditResu
     }
   }
 
-  const content = [...pages.keys()].filter((p) => p !== '/').sort();
+  // /embed/ pages are iframe targets (noindex, canonical to the real page), never linked from the site: not orphans.
+  const content = [...pages.keys()].filter((p) => p !== '/' && !isEmbedPath(p)).sort();
   return {
     inbound,
     orphans: content.filter((p) => inbound.get(p)!.length === 0),
@@ -80,6 +84,37 @@ export interface SitemapFileData {
   name: string;
   /** Paths from the <loc> entries. */
   paths: string[];
+}
+
+/** The controls every calculator page carries (plan/PROMPT 19). "Helpful? Yes / No" joins when the analytics tool is chosen (12.9). */
+export const TOOLBAR_HOOKS = ['share', 'cite', 'embed', 'preferred', 'share-result', 'reset'] as const;
+
+const calculatorSlug = (path: string): string | null => {
+  if (!path.startsWith('/calculators/') || !path.endsWith('/')) return null;
+  const slug = path.slice('/calculators/'.length, -1);
+  return slug && !slug.includes('/') ? slug : null;
+};
+
+/**
+ * Item 20.10: every built calculator page has every toolbar control (found by its data-toolbar hook) and a frameable
+ * /embed/<slug>/ page; every embed page is noindex and names the real calculator as its canonical.
+ */
+export function toolbarProblems(pages: ReadonlyMap<string, string>): string[] {
+  const problems: string[] = [];
+  for (const [path, html] of pages) {
+    const slug = calculatorSlug(path);
+    if (slug) {
+      for (const hook of TOOLBAR_HOOKS)
+        if (!html.includes(`data-toolbar="${hook}"`)) problems.push(`${path} has no "${hook}" toolbar control (data-toolbar="${hook}")`);
+      if (!pages.has(`/embed/${slug}/`)) problems.push(`${path} has no embed page /embed/${slug}/`);
+    } else if (isEmbedPath(path)) {
+      const real = `/calculators/${path.slice('/embed/'.length, -1)}/`;
+      if (!pages.has(real)) problems.push(`${path} is an embed page for ${real}, which is not built`);
+      if (!hasNoindex(html)) problems.push(`${path} is not noindex`);
+      if (!html.includes(`<link rel="canonical" href="${HOST}${real}"`)) problems.push(`${path} does not name ${HOST}${real} as its canonical`);
+    }
+  }
+  return problems;
 }
 
 export interface DistCheckInput {
@@ -121,11 +156,14 @@ export function checkDist(input: DistCheckInput): string[] {
 
   if (requiredLinks.length) {
     for (const [path, html] of pages) {
+      if (isEmbedPath(path)) continue; // a framed widget, not a site page; it links back to the real calculator
       const linked = new Set(extractLinks(html, path));
       const missing = requiredLinks.filter((p) => !linked.has(p));
       if (missing.length) problems.push(`${path} does not link to ${missing.join(', ')} (required in every footer)`);
     }
   }
+
+  problems.push(...toolbarProblems(pages));
 
   const { badLinks } = auditLinks({ pages, sitemapPaths: new Set(seen.keys()), unpublishedPaths });
   for (const b of badLinks) problems.push(`${b.from} links to ${b.reason === 'unpublished' ? 'an unpublished page' : 'a page that was not built'}: ${b.to}`);

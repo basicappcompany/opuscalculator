@@ -1,0 +1,25 @@
+---
+import EmbedLayout from '../../layouts/EmbedLayout.astro';
+import Disclaimer from '../../components/Disclaimer.astro';
+import CalculatorWidget from '../../components/calculator/CalculatorWidget';
+import { getPublishableCalculators } from '../../lib/registry';
+import { toWidgetSpec } from '../../lib/widget-spec';
+import type { CalculatorConfig } from '../../lib/types';
+
+// One embeddable copy per published calculator (CLAUDE.md rule 1): anything unpublished has no route, so it 404s.
+export function getStaticPaths() {
+  return getPublishableCalculators().map((config) => ({ params: { slug: config.slug }, props: { config } }));
+}
+
+interface Props {
+  config: CalculatorConfig;
+}
+const { config } = Astro.props;
+const spec = toWidgetSpec(config);
+---
+
+<EmbedLayout title={`${config.h1} (embedded copy)`} description={config.metaDescription} canonicalPath={`/calculators/${config.slug}/`}>
+  <h1 class="mb-3 text-2xl font-bold tracking-tight">{config.h1}</h1>
+  <CalculatorWidget client:load spec={spec} variant="stack" />
+  <Disclaimer category={config.category} lastUpdated={config.lastUpdated} />
+</EmbedLayout>

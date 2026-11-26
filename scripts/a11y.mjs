@@ -145,7 +145,7 @@ for (const path of CALCULATORS) {
     if (reached < inCalc) fail('keyboard', path, `${inCalc} controls in the calculator but Tab reached ${reached}`);
   }
   // Enter and Space activate buttons; Escape does not trap.
-  const reset = page.getByRole('button', { name: /Reset to defaults/ });
+  const reset = page.getByRole('button', { name: /Clear all changes/ });
   await reset.focus();
   await page.keyboard.press('Enter');
   await reset.focus();

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
-import { Check, Copy, RotateCcw } from 'lucide-react';
+import { Check, Copy, Link2, RotateCcw } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
@@ -10,6 +10,7 @@ import { currencyLongLabel, getCurrency, symbolOf, withCurrency } from '../../li
 import { OPEN_SELECTOR_EVENT, getCurrencyState, onCurrencyChange, startCurrency, type CurrencyState } from '../../lib/currency-store';
 import { convertValue } from '../../lib/units';
 import { solveInput } from '../../lib/solve';
+import { readShareParams, shareResultUrl } from '../../lib/toolbar';
 import type { CalculatorConfig } from '../../lib/types';
 import type { WidgetSpec } from '../../lib/widget-spec';
 
@@ -44,6 +45,7 @@ export default function CalculatorWidget({ spec, variant = 'stack' }: Calculator
   const [targetValue, setTargetValue] = useState('');
   const [solveError, setSolveError] = useState('');
   const [copied, setCopied] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
 
   // Currency. `native` is what the server HTML is written in (absent: this calculator shows no money, so no selector).
   // The visitor's choice or detected currency arrives after hydration, so the first paint always matches the HTML.
@@ -58,6 +60,7 @@ export default function CalculatorWidget({ spec, variant = 'stack' }: Calculator
   const configRef = useRef<CalculatorConfig | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const copiedTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const linkTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   // Load calculate() and the validators after hydration. The first paint never waits for this.
   useEffect(() => {
@@ -69,6 +72,7 @@ export default function CalculatorWidget({ spec, variant = 'stack' }: Calculator
       live = false;
       clearTimeout(timer.current);
       clearTimeout(copiedTimer.current);
+      clearTimeout(linkTimer.current);
     };
   }, [spec.slug]);
 
@@ -102,6 +106,17 @@ export default function CalculatorWidget({ spec, variant = 'stack' }: Calculator
     },
     [spec.slug],
   );
+
+  // A shared-result link (?homePrice=300000): fill the inputs and recompute. After hydration only, so the server HTML and the
+  // first paint stay the default state (CLAUDE.md rule 2). The values go through the same validators as typed input.
+  useEffect(() => {
+    const found = readShareParams(window.location.search, shareKeys);
+    if (Object.keys(found).length === 0) return;
+    const next = { ...spec.defaults, ...found };
+    setValues(next);
+    void compute(next, FORWARD, targetOutput, '');
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- once, on arrival
+  }, []);
 
   // Follow the visitor's currency (header selector, saved choice, detection). Only calculators that show money listen.
   useEffect(() => {
@@ -143,6 +158,15 @@ export default function CalculatorWidget({ spec, variant = 'stack' }: Calculator
     schedule(next);
   };
 
+  // The inputs a shared-result link carries: every input, plus the unit pick of each unit input.
+  const shareKeys = spec.inputs.flatMap((i) => (i.type === 'unit' && i.unitOptions ? [i.name, `${i.name}Unit`] : [i.name]));
+  const defaultOf = (key: string): string => {
+    if (spec.defaults[key] !== undefined) return spec.defaults[key];
+    const unitOf = spec.inputs.find((i) => `${i.name}Unit` === key);
+    return unitOf?.unitOptions?.[0]?.value ?? '';
+  };
+  const changed = solveName !== FORWARD || shareKeys.some((k) => (values[k] ?? defaultOf(k)) !== defaultOf(k));
+
   const reset = () => {
     clearTimeout(timer.current);
     setValues(spec.defaults);
@@ -183,6 +207,27 @@ export default function CalculatorWidget({ spec, variant = 'stack' }: Calculator
       copiedTimer.current = setTimeout(() => setCopied(false), 2000);
     } catch {
       /* Clipboard blocked (insecure context or permissions): nothing useful to do. */
+    }
+  };
+
+  const shareResult = async () => {
+    const defaults = Object.fromEntries(shareKeys.map((k) => [k, defaultOf(k)]));
+    const url = shareResultUrl(window.location.href, values, defaults, shareKeys);
+    if (typeof navigator.share === 'function') {
+      try {
+        await navigator.share({ title: document.title, url });
+        return;
+      } catch (error) {
+        if (error instanceof DOMException && error.name === 'AbortError') return; // the visitor closed the share sheet
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      setLinkCopied(true);
+      clearTimeout(linkTimer.current);
+      linkTimer.current = setTimeout(() => setLinkCopied(false), 2000);
+    } catch {
+      /* Clipboard blocked: nothing useful to do. */
     }
   };
 
@@ -390,13 +435,35 @@ export default function CalculatorWidget({ spec, variant = 'stack' }: Calculator
         )}
 
         <div className="flex flex-wrap gap-2">
-          <Button variant="outline" onClick={reset}>
-            <RotateCcw size={16} aria-hidden="true" /> Reset to defaults
+          {/* Greyed out until something changed. aria-disabled (not disabled) keeps it focusable, and the reason is read out. */}
+          <Button
+            variant="outline"
+            data-toolbar="reset"
+            aria-disabled={changed ? undefined : true}
+            aria-describedby={changed ? undefined : id('reset-hint')}
+            className={cn(!changed && 'cursor-not-allowed opacity-50')}
+            onClick={() => {
+              if (changed) reset();
+            }}
+          >
+            <RotateCcw size={16} aria-hidden="true" /> Clear all changes
           </Button>
+          {!changed && (
+            <span id={id('reset-hint')} className="sr-only">
+              Nothing has changed yet.
+            </span>
+          )}
           <Button variant="outline" onClick={() => void copy()}>
             {copied ? <Check size={16} aria-hidden="true" /> : <Copy size={16} aria-hidden="true" />}
             {copied ? 'Copied' : 'Copy results'}
           </Button>
+          <Button variant="outline" data-toolbar="share-result" onClick={() => void shareResult()}>
+            {linkCopied ? <Check size={16} aria-hidden="true" /> : <Link2 size={16} aria-hidden="true" />}
+            {linkCopied ? 'Link copied' : 'Share result'}
+          </Button>
+          <span role="status" className="sr-only">
+            {linkCopied ? 'Link to this result copied' : ''}
+          </span>
         </div>
       </form>
 

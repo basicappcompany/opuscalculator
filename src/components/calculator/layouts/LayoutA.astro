@@ -7,6 +7,7 @@ import type { LinkSet } from '../../../lib/linking';
 import type { ScenarioTable as ScenarioTableData } from '../../../lib/scenarios';
 import { splitIntro } from '../../../lib/text';
 import AdSlot from '../AdSlot.astro';
+import CalculatorToolbar from '../CalculatorToolbar.astro';
 import Disclaimer from '../../Disclaimer.astro';
 import FaqAccordion from '../FaqAccordion.astro';
 import RelatedCalculators from '../RelatedCalculators.astro';
@@ -26,6 +27,8 @@ const { lede, rest } = splitIntro(config.intro);
     <h1 class="text-3xl font-bold tracking-tight sm:text-4xl">{config.h1}</h1>
     <p class="mt-3 text-lg leading-relaxed text-muted">{lede}</p>
   </header>
+
+  <CalculatorToolbar config={config} />
 
   <slot name="widget" />
 

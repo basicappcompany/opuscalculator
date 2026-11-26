@@ -20,7 +20,7 @@ test.describe('BMI calculator', () => {
     await expect(announced(page)).toContainText(/Your BMI: 27\.[89]/);
 
     // Reset returns the defaults and the default result.
-    await page.getByRole('button', { name: 'Reset to defaults' }).click();
+    await page.getByRole('button', { name: 'Clear all changes' }).click();
     await expect(page.getByLabel('Weight', { exact: true })).toHaveValue('70');
     await expect(page.getByLabel('Height', { exact: true })).toHaveValue('175');
     await expect(announced(page)).toContainText('Your BMI: 22.9');
