@@ -213,6 +213,12 @@ export default function CalculatorWidget({ spec, variant = 'stack' }: Calculator
   const shareResult = async () => {
     const defaults = Object.fromEntries(shareKeys.map((k) => [k, defaultOf(k)]));
     const url = shareResultUrl(window.location.href, values, defaults, shareKeys);
+    // The page's own Share dialog (CalculatorToolbar) takes this when there is one: it cancels the event to say so. Without it
+    // (the embedded copy has no toolbar) fall back to the system share sheet, then the clipboard.
+    const title = document.querySelector('h1')?.textContent?.trim() || document.title;
+    const lines = spec.outputs.filter((o) => results[o.name]).map((o) => `${o.label}: ${results[o.name]}`);
+    const text = [title, ...lines].join('\n');
+    if (!window.dispatchEvent(new CustomEvent('opus:share', { cancelable: true, detail: { url, title, text } }))) return;
     if (typeof navigator.share === 'function') {
       try {
         await navigator.share({ title: document.title, url });

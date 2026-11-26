@@ -36,9 +36,70 @@ export function citationLines(title: string, url: string, lastUpdated: string): 
 
 const escapeAttr = (s: string): string => s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
-/** The iframe a site owner pastes to show the calculator. */
-export function embedSnippet(embedUrl: string, title: string, height = 640): string {
-  return `<iframe src="${escapeAttr(embedUrl)}" title="${escapeAttr(title)}" width="100%" height="${height}" loading="lazy" style="border:0;max-width:100%"></iframe>`;
+/** The iframe a site owner pastes to show the calculator. `width` is "100%" (responsive) or a number of pixels. */
+export function embedSnippet(embedUrl: string, title: string, height = 640, width: number | '100%' = '100%'): string {
+  const w = width === '100%' ? '100%' : String(Math.round(width));
+  return `<iframe src="${escapeAttr(embedUrl)}" title="${escapeAttr(title)}" width="${w}" height="${Math.round(height)}" loading="lazy" style="border:0;max-width:100%"></iframe>`;
+}
+
+const MLA_MONTHS = ['Jan.', 'Feb.', 'Mar.', 'Apr.', 'May', 'June', 'July', 'Aug.', 'Sept.', 'Oct.', 'Nov.', 'Dec.'];
+
+export interface CitationFormat {
+  id: 'apa' | 'mla' | 'chicago' | 'bibtex' | 'plain';
+  label: string;
+  text: string;
+}
+
+/** The same citation in the styles people ask for. Only the date the page was last updated is used, never "today". */
+export function citationFormats(title: string, url: string, lastUpdated: string, slug = ''): CitationFormat[] {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(lastUpdated);
+  const month = m ? MONTHS[Number(m[2]) - 1] : undefined;
+  const mlaMonth = m ? MLA_MONTHS[Number(m[2]) - 1] : undefined;
+  const day = m ? String(Number(m[3])) : '';
+  const year = m?.[1];
+  const known = Boolean(m && month && mlaMonth);
+  const key = `opus_${(slug || new URL(url).pathname.split('/').filter(Boolean).pop() || 'calculator').replace(/[^a-z0-9]+/gi, '_').toLowerCase()}`;
+  return [
+    { id: 'apa', label: 'APA', text: citationLines(title, url, lastUpdated).apa },
+    { id: 'mla', label: 'MLA', text: `"${title}." ${SITE_NAME}, ${known ? `${day} ${mlaMonth} ${year}, ` : ''}${url}.` },
+    { id: 'chicago', label: 'Chicago', text: `${SITE_NAME}. "${title}." ${known ? `Last modified ${month} ${day}, ${year}. ` : ''}${url}.` },
+    {
+      id: 'bibtex',
+      label: 'BibTeX',
+      text: [
+        '@misc{' + key + ',',
+        `  title = {${title}},`,
+        `  author = {{${SITE_NAME}}},`,
+        ...(year ? [`  year = {${year}},`] : []),
+        `  url = {${url}},`,
+        `  note = {Online calculator${known ? `, last updated ${lastUpdated}` : ''}}`,
+        '}',
+      ].join('\n'),
+    },
+    { id: 'plain', label: 'Plain text', text: citationLines(title, url, lastUpdated).plain },
+  ];
+}
+
+export interface ShareLink {
+  id: string;
+  label: string;
+  href: string;
+}
+
+/** Plain links to the usual places a page is shared. Nothing is loaded from them until the visitor clicks one. */
+export function shareLinks(url: string, title: string, text = ''): ShareLink[] {
+  const u = encodeURIComponent(url);
+  const t = encodeURIComponent(title);
+  const body = encodeURIComponent(text ? `${text}\n\n${url}` : url);
+  return [
+    { id: 'email', label: 'Email', href: `mailto:?subject=${t}&body=${body}` },
+    { id: 'whatsapp', label: 'WhatsApp', href: `https://wa.me/?text=${encodeURIComponent(`${text || title} ${url}`)}` },
+    { id: 'x', label: 'X', href: `https://twitter.com/intent/tweet?url=${u}&text=${encodeURIComponent(text || title)}` },
+    { id: 'linkedin', label: 'LinkedIn', href: `https://www.linkedin.com/sharing/share-offsite/?url=${u}` },
+    { id: 'facebook', label: 'Facebook', href: `https://www.facebook.com/sharer/sharer.php?u=${u}` },
+    { id: 'reddit', label: 'Reddit', href: `https://www.reddit.com/submit?url=${u}&title=${t}` },
+    { id: 'telegram', label: 'Telegram', href: `https://t.me/share/url?url=${u}&text=${encodeURIComponent(text || title)}` },
+  ];
 }
 
 /** Longest value a shared-result link may carry for one input. Calculator inputs are short; anything longer is not ours. */

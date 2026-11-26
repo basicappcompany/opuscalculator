@@ -1,7 +1,17 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { TOOLBAR_HOOKS, checkDist, isEmbedPath, toolbarProblems } from '../src/lib/audit';
-import { MAX_SHARE_VALUE_LENGTH, citationLines, embedPath, embedSnippet, preferredSourceUrl, readShareParams, shareResultUrl } from '../src/lib/toolbar';
+import {
+  MAX_SHARE_VALUE_LENGTH,
+  citationFormats,
+  citationLines,
+  embedPath,
+  embedSnippet,
+  preferredSourceUrl,
+  readShareParams,
+  shareLinks,
+  shareResultUrl,
+} from '../src/lib/toolbar';
 import { checkEmbedHeaders, checkHeaders, parseBlocks } from '../scripts/check-security';
 
 const headersFile = readFileSync('public/_headers', 'utf8');
@@ -127,5 +137,47 @@ describe('only /embed/* may be framed (plan/PROMPT 19)', () => {
     ).toMatch(/differs from the site CSP/);
     expect(checkEmbedHeaders(headersFile.replace('frame-ancestors *', "frame-ancestors 'none'")).join()).toMatch(/frame-ancestors is not \*/);
     expect(checkEmbedHeaders(`${headersFile}\n/calculators/*\n  ! X-Frame-Options\n`).join()).toMatch(/only \/embed\/\* may be framed/);
+  });
+});
+
+describe('citation styles and share links for the dialogs', () => {
+  const url = 'https://opuscalculator.com/calculators/bmi-calculator/';
+  const formats = citationFormats('BMI Calculator', url, '2026-11-23', 'bmi-calculator');
+  const text = (id: string) => formats.find((f) => f.id === id)!.text;
+
+  it('gives APA, MLA, Chicago, BibTeX and plain text, dated by the last update and never by today', () => {
+    expect(formats.map((f) => f.id)).toEqual(['apa', 'mla', 'chicago', 'bibtex', 'plain']);
+    expect(text('apa')).toBe(`Opus Calculator. (2026, November 23). BMI Calculator [Online calculator]. ${url}`);
+    expect(text('mla')).toBe(`"BMI Calculator." Opus Calculator, 23 Nov. 2026, ${url}.`);
+    expect(text('chicago')).toBe(`Opus Calculator. "BMI Calculator." Last modified November 23, 2026. ${url}.`);
+    expect(text('plain')).toBe(`BMI Calculator, Opus Calculator, ${url}`);
+  });
+
+  it('writes valid BibTeX with a stable key, and copes with a missing date', () => {
+    const bib = text('bibtex').split('\n');
+    expect(bib[0]).toBe('@misc{opus_bmi_calculator,');
+    expect(bib).toContain('  title = {BMI Calculator},');
+    expect(bib).toContain('  author = {{Opus Calculator}},');
+    expect(bib).toContain('  year = {2026},');
+    expect(bib.at(-1)).toBe('}');
+    const undated = citationFormats('X Calculator', 'https://opuscalculator.com/calculators/x/', 'soon');
+    expect(undated.find((f) => f.id === 'mla')!.text).toBe('"X Calculator." Opus Calculator, https://opuscalculator.com/calculators/x/.');
+    expect(undated.find((f) => f.id === 'bibtex')!.text).not.toContain('year');
+  });
+
+  it('builds plain share links that carry the address and the title, encoded', () => {
+    const links = shareLinks(url, 'BMI & Health', 'Your BMI: 22.9');
+    expect(links.map((l) => l.id)).toEqual(['email', 'whatsapp', 'x', 'linkedin', 'facebook', 'reddit', 'telegram']);
+    const href = (id: string) => links.find((l) => l.id === id)!.href;
+    expect(href('email')).toBe(`mailto:?subject=BMI%20%26%20Health&body=${encodeURIComponent(`Your BMI: 22.9\n\n${url}`)}`);
+    expect(href('linkedin')).toBe(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`);
+    expect(href('x')).toContain(`url=${encodeURIComponent(url)}`);
+    for (const l of links.filter((x) => x.id !== 'email')) expect(l.href.startsWith('https://'), l.id).toBe(true);
+  });
+
+  it('sizes the embed snippet: responsive by default, a pixel width or height on request', () => {
+    const src = 'https://opuscalculator.com/embed/bmi-calculator/';
+    expect(embedSnippet(src, 'T')).toContain('width="100%" height="640"');
+    expect(embedSnippet(src, 'T', 760, 480)).toContain('width="480" height="760"');
   });
 });
