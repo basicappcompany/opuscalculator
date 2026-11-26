@@ -1,3 +1,4 @@
+import { spawnSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { describe, expect, it, vi } from 'vitest';
 import bmi from '../src/calculators/bmi-calculator';
@@ -174,5 +175,35 @@ describe('every input has a validator (Prompt 15, step 5)', () => {
     );
     expect(missing).toEqual([]);
     expect(registry.excluded.flatMap((e) => e.reasons).filter((reason) => /validator/.test(reason))).toEqual([]);
+  });
+});
+
+describe('files that can hold a secret stay out of git (.gitignore, not only a developer machine)', () => {
+  // `git check-ignore --no-index` reads the repository's own .gitignore and ignores the machine-wide one, so this
+  // fails on a CI runner or a fresh clone exactly as it would for the next developer.
+  const ignored = (path: string): boolean => spawnSync('git', ['check-ignore', '-q', '--no-index', path], { stdio: 'ignore' }).status === 0;
+
+  it('ignores env files, keys, credentials, the local key file and local Claude settings', () => {
+    const secretShaped = [
+      '.env',
+      '.env.local',
+      '.env.production',
+      '.dev.vars',
+      'key.pem',
+      'private.key',
+      'cert.p12',
+      'credentials.json',
+      'search-console-credentials.json',
+      'my-service-account-key.json',
+      'secrets.json',
+      'claude-toggle.bat',
+      '.claude/settings.local.json',
+    ];
+    expect(secretShaped.filter((p) => !ignored(p))).toEqual([]);
+  });
+
+  it('still commits the example file (names only) and the project docs skill', () => {
+    expect(ignored('.env.example')).toBe(false);
+    expect(ignored('.claude/skills/docs-sync/SKILL.md')).toBe(false);
   });
 });
