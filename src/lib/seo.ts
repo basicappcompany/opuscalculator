@@ -102,6 +102,12 @@ export function calculatorJsonLd(config: CalculatorConfig, path: string, crumbs:
         dateModified: config.lastUpdated,
         publisher: PUBLISHER,
         offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+
+        // Structured answers for AI search (item 20.8): the same text the page shows, named so an answer engine can quote it.
+        hasPart: [
+          { '@type': 'WebPageElement', '@id': `${url}#method`, name: 'How it is calculated', text: config.formulaDescription },
+          { '@type': 'WebPageElement', '@id': `${url}#example`, name: 'Worked example', text: config.workedExample },
+        ],
       },
       ...(isYmyl(config.category) ? [reviewNode(config, url)] : []),
       {
