@@ -47,7 +47,7 @@ describe('CalculatorWidget server render (rule 2: the answer is in the initial H
 
   it('offers Reset and Copy buttons', () => {
     const out = html();
-    expect(out).toContain('Reset to defaults');
+    expect(out).toContain('Clear all changes');
     expect(out).toContain('Copy results');
   });
 
@@ -60,7 +60,12 @@ describe('CalculatorWidget server render (rule 2: the answer is in the initial H
   it('links every input to a label, and renders no error text before the person types', () => {
     const out = html();
     expect(out).toMatch(/<label[^>]*for="[^"]+-weight"/);
-    expect(out).not.toContain('aria-describedby');
+    // No input or select points at an error or a hint before the person types; the only description is the disabled
+    // "Clear all changes" button's reason, which is not an error.
+    expect(out).not.toMatch(/<(input|select)[^>]*aria-describedby/);
+    expect(out.match(/aria-describedby/g)).toHaveLength(1);
+    expect(out).toMatch(/data-toolbar="reset"[^>]*aria-disabled="true"[^>]*aria-describedby=/);
+    expect(out).toContain('Nothing has changed yet.');
     expect(out).not.toContain('aria-invalid');
   });
 

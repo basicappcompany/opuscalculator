@@ -25,21 +25,60 @@ export const KNOWN_HOSTS: Record<string, string> = {
   'https://plausible.io': 'PLAUSIBLE_DOMAIN (cookieless analytics)',
 };
 
-/** Headers of the `/*` block of a Cloudflare Pages _headers file. */
-export function parseHeaders(text: string): Record<string, string> {
-  const out: Record<string, string> = {};
-  let inAll = false;
+/** Each path block of a Cloudflare Pages _headers file: the headers it sets and the ones it detaches with `! Name`. */
+export function parseBlocks(text: string): Record<string, { headers: Record<string, string>; detached: string[] }> {
+  const blocks: Record<string, { headers: Record<string, string>; detached: string[] }> = {};
+  let current: { headers: Record<string, string>; detached: string[] } | null = null;
   for (const raw of text.split(/\r?\n/)) {
     if (!raw.trim() || raw.trim().startsWith('#')) continue;
     if (!/^\s/.test(raw)) {
-      inAll = raw.trim() === '/*';
+      current = blocks[raw.trim()] ??= { headers: {}, detached: [] };
       continue;
     }
-    if (!inAll) continue;
+    if (!current) continue;
+    const line = raw.trim();
+    if (line.startsWith('!')) {
+      current.detached.push(line.slice(1).trim());
+      continue;
+    }
     const i = raw.indexOf(':');
-    if (i > 0) out[raw.slice(0, i).trim()] = raw.slice(i + 1).trim();
+    if (i > 0) current.headers[raw.slice(0, i).trim()] = raw.slice(i + 1).trim();
   }
-  return out;
+  return blocks;
+}
+
+/** Headers of the `/*` block of a Cloudflare Pages _headers file. */
+export function parseHeaders(text: string): Record<string, string> {
+  return parseBlocks(text)['/*']?.headers ?? {};
+}
+
+/**
+ * Only /embed/* may be framed (plan/PROMPT 19). That block detaches the site-wide X-Frame-Options and CSP and sets a CSP
+ * that is the site's own except for frame-ancestors; no other block may detach either header.
+ */
+export function checkEmbedHeaders(text: string): string[] {
+  const problems: string[] = [];
+  const blocks = parseBlocks(text);
+  for (const [path, block] of Object.entries(blocks)) {
+    if (path === '/embed/*') continue;
+    for (const name of block.detached) {
+      if (/^(x-frame-options|content-security-policy)$/i.test(name)) problems.push(`the ${path} block detaches ${name}; only /embed/* may be framed`);
+    }
+  }
+  const embed = blocks['/embed/*'];
+  if (!embed) return [...problems, '_headers has no /embed/* block: the embed pages could not be framed'];
+  for (const name of ['X-Frame-Options', 'Content-Security-Policy']) {
+    if (!embed.detached.some((d) => d.toLowerCase() === name.toLowerCase())) problems.push(`the /embed/* block does not detach ${name}`);
+  }
+  const csp = parseCsp(embed.headers['Content-Security-Policy'] ?? '');
+  const site = parseCsp(blocks['/*']?.headers['Content-Security-Policy'] ?? '');
+  if ((csp['frame-ancestors'] ?? []).join(' ') !== '*') problems.push('the /embed/* CSP frame-ancestors is not *');
+  for (const [directive, sources] of Object.entries(site)) {
+    if (directive !== 'frame-ancestors' && (csp[directive] ?? []).join(' ') !== sources.join(' '))
+      problems.push(`the /embed/* CSP ${directive} differs from the site CSP`);
+  }
+  for (const directive of Object.keys(csp)) if (!(directive in site)) problems.push(`the /embed/* CSP has ${directive}, which the site CSP does not`);
+  return problems;
 }
 
 /** Directive name to its sources, from a Content-Security-Policy value. */
@@ -71,6 +110,7 @@ export function checkHeaders(text: string): string[] {
       if (/^https?:\/\//.test(s) && !(s in KNOWN_HOSTS))
         problems.push(`the CSP ${directive} names ${s}, which has no entry in KNOWN_HOSTS (scripts/check-security.ts): add the reason or remove the host`);
   }
+  problems.push(...checkEmbedHeaders(text));
   return problems;
 }
 

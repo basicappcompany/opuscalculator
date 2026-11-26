@@ -6,6 +6,7 @@ import type { CalculatorConfig } from '../../../lib/types';
 import type { LinkSet } from '../../../lib/linking';
 import { renderLatex, renderMathText, splitIntro } from '../../../lib/text';
 import AdSlot from '../AdSlot.astro';
+import CalculatorToolbar from '../CalculatorToolbar.astro';
 import Disclaimer from '../../Disclaimer.astro';
 import FaqAccordion from '../FaqAccordion.astro';
 import RelatedCalculators from '../RelatedCalculators.astro';
@@ -27,6 +28,8 @@ const formulaHtml = config.formulaLatex ? renderLatex(config.formulaLatex, true)
 
   <div class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_17rem]">
     <div class="min-w-0">
+      <CalculatorToolbar config={config} />
+
       <slot name="widget" />
 
       <Disclaimer category={config.category} lastUpdated={config.lastUpdated} />
