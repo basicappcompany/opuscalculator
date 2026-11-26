@@ -1,0 +1,140 @@
+[
+  {
+    "id": "calm",
+    "name": "Calm Precision",
+    "mood": "Warm paper, a serif display face and one quiet accent. Editorial and trustworthy.",
+    "layout": ""
+  },
+  {
+    "id": "answer",
+    "name": "Answer Engine",
+    "mood": "Cool teal and violet with a soft glow. Made for dark mode; feels like an AI assistant.",
+    "layout": ""
+  },
+  {
+    "id": "instrument",
+    "name": "Instrument",
+    "mood": "Neutral greys and a signal orange. Dense, numeric, built for people who use calculators all day.",
+    "layout": "instrument"
+  },
+  {
+    "id": "ocean",
+    "name": "Ocean",
+    "mood": "Clear blues and teal. Calm and clean, good for health and finance.",
+    "layout": ""
+  },
+  {
+    "id": "forest",
+    "name": "Forest",
+    "mood": "Deep greens on a pale leaf background. Natural and grounded.",
+    "layout": ""
+  },
+  {
+    "id": "sunset",
+    "name": "Sunset",
+    "mood": "Warm orange into rose. Friendly and energetic.",
+    "layout": ""
+  },
+  {
+    "id": "graphite",
+    "name": "Graphite",
+    "mood": "Slate greys with one blue. Neutral, professional, easy to live with.",
+    "layout": ""
+  },
+  {
+    "id": "paper",
+    "name": "Paper",
+    "mood": "Sepia page, serif text, a narrow single column. For reading the working.",
+    "layout": "focus"
+  },
+  {
+    "id": "midnight",
+    "name": "Midnight",
+    "mood": "Deep navy with electric blue and cyan. A late-night dashboard.",
+    "layout": ""
+  },
+  {
+    "id": "terminal",
+    "name": "Terminal",
+    "mood": "Monospace everywhere and phosphor green. For people who like a command line.",
+    "layout": ""
+  },
+  {
+    "id": "brutalist",
+    "name": "Brutalist",
+    "mood": "Square corners, hard shadows, black on cream, electric accents. Loud and unmistakable.",
+    "layout": ""
+  },
+  {
+    "id": "pastel",
+    "name": "Soft Pastel",
+    "mood": "Lilac and pink with very round corners. Gentle and approachable.",
+    "layout": ""
+  },
+  {
+    "id": "contrast",
+    "name": "High Contrast",
+    "mood": "Black and white with a bold accent, text contrast of at least 7 to 1 (WCAG AAA).",
+    "layout": ""
+  },
+  {
+    "id": "friendly",
+    "name": "Rounded Friendly",
+    "mood": "Teal with generous space and big round corners. Approachable and airy.",
+    "layout": ""
+  },
+  {
+    "id": "editorial",
+    "name": "Editorial",
+    "mood": "Ink on white, a red accent, serif everywhere and tight headings. Like a good magazine.",
+    "layout": "focus"
+  },
+  {
+    "id": "swiss",
+    "name": "Swiss",
+    "mood": "White, black and one red. Grotesque type, almost no rounding, nothing decorative.",
+    "layout": ""
+  },
+  {
+    "id": "nordic",
+    "name": "Nordic",
+    "mood": "Pale blue-grey with muted frost accents. Quiet, minimal, easy on the eyes.",
+    "layout": ""
+  },
+  {
+    "id": "berry",
+    "name": "Berry",
+    "mood": "Magenta and purple on a blush background. Bold but warm.",
+    "layout": ""
+  },
+  {
+    "id": "gold",
+    "name": "Gold Ledger",
+    "mood": "Cream and amber with serif headings. Suits money: a private bank, a ledger.",
+    "layout": ""
+  },
+  {
+    "id": "mint",
+    "name": "Mint",
+    "mood": "Fresh mint and deep green. Light, clean, optimistic.",
+    "layout": ""
+  },
+  {
+    "id": "coral",
+    "name": "Slate & Coral",
+    "mood": "Cool slate with a coral accent. Modern and a little playful.",
+    "layout": ""
+  },
+  {
+    "id": "sand",
+    "name": "Sand",
+    "mood": "Warm beige and terracotta. Earthy, calm, handmade.",
+    "layout": ""
+  },
+  {
+    "id": "neon",
+    "name": "Neon Grid",
+    "mood": "Near-black with magenta and cyan glow. Playful and futuristic; best in dark mode.",
+    "layout": ""
+  }
+]
