@@ -113,7 +113,7 @@ Renamed on 26 Nov 2026 from calculator365.net to Opus Calculator, at opuscalcula
 
 ## OBSERVABILITY RULES (Prompt 17)
 
-- Browser tests: `npm run e2e` types inputs, waits for the debounced result and asserts exact rendered numbers, with an axe scan per calculator; `npm run visual` compares 12 screenshots (layouts A, B and C, light and dark, desktop and mobile) and its baselines are Windows renderings. Both use `playwright.config.ts` and the installed Chrome. Firefox, WebKit and mobile Safari projects exist and need `npx playwright install firefox webkit`.
+- Browser tests: `npm run e2e` types inputs, waits for the debounced result and asserts exact rendered numbers, with an axe scan per calculator; `npm run visual` compares 12 screenshots (layouts A, B and C, light and dark, desktop and mobile) and its baselines are Windows renderings. Both use `playwright.config.ts` and the installed Chrome. `npm run e2e` pins the chosen currency to USD (the `openCalculator` helper), so it also passes on a deployed site, where the page otherwise re-formats to the detected currency: `E2E_BASE_URL=https://opuscalculator.com npm run e2e -- --project=chromium`. Firefox, WebKit and mobile Safari projects exist and need `npx playwright install firefox webkit`.
 - Error monitoring and uptime need accounts the owner has not created (items 18.4 and 18.5). If Sentry is added: `tracesSampleRate` 0.1, no session replay, enabled only when `SENTRY_DSN` is set, its host added to the CSP and named in /privacy. Uptime: the home page, a calculator and the sitemap every 60 seconds, alert after 2 consecutive failures.
 - `npm run audit:prelaunch` checks the pre-launch items locally or, with `-- --base https://opuscalculator.com`, a deployed site.
 
