@@ -1,0 +1,51 @@
+---
+import StaticPage from '../layouts/StaticPage.astro';
+import { MCP_SETUP, MCP_URL } from '../lib/toolbar';
+import { SITE_URL } from '../lib/seo';
+---
+
+<StaticPage path="/agents/" h1="Opus Calculator for AI agents" updated="2026-11-27">
+  <p class="mt-6">
+    Opus Calculator is built to be used by people and by AI assistants. Every calculator runs on exact decimal arithmetic, and the same functions that produce
+    the number on a page answer an agent's request, so an assistant never has to guess a formula or do the sum itself.
+  </p>
+
+  <h2>Connect an MCP server</h2>
+  <p>
+    The server is read-only, needs no account or key, and stores nothing. It speaks MCP over HTTP at <code>{MCP_URL}</code> and offers three tools:
+    <code>list_calculators</code>, <code>describe_calculator</code> (inputs, defaults and units) and <code>calculate</code>.
+  </p>
+  <p>Claude Code, one command:</p>
+  <pre tabindex="0"><code>{MCP_SETUP.claudeCode}</code></pre>
+  <p>
+    Clients that read an <code>mcpServers</code> file (key names vary by client, the address is what matters):
+  </p>
+  <pre tabindex="0"><code>{MCP_SETUP.json}</code></pre>
+
+  <h2>Read the site without a browser</h2>
+  <ul>
+    <li>
+      <a href="/llms.txt">/llms.txt</a>: what the site is and a link to every calculator, grouped by category.
+    </li>
+    <li>
+      <a href="/calculators.json">/calculators.json</a>: an index of every published calculator with its title, category, page and markdown copy.
+    </li>
+    <li>
+      A markdown copy of each calculator at the page address with <code>.md</code> instead of the trailing slash, for example
+      <a href="/calculators/bmi-calculator.md">/calculators/bmi-calculator.md</a>: inputs, defaults, result, method, worked example, FAQ and a citation.
+    </li>
+    <li>Each calculator page also carries structured data (the formula and a worked example) for search and answer engines.</li>
+  </ul>
+
+  <h2>How to cite</h2>
+  <p>
+    Cite a calculator by its page address, for example <code>{SITE_URL}/calculators/bmi-calculator/</code>. Every page has a Cite button with APA, MLA, Chicago
+    and BibTeX text, and every calculator lists the sources behind its method.
+  </p>
+
+  <h2>What it will not do</h2>
+  <p>
+    Results are for information and are not financial, medical or legal advice. The server only lists calculators that are published on the site, and it is rate
+    limited. If an answer looks wrong, tell us through the <a href="/contact/">contact page</a> and include the calculator and the inputs.
+  </p>
+</StaticPage>

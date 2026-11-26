@@ -1,5 +1,6 @@
 ---
 import '../styles/global.css';
+import SearchPalette from '../components/SearchPalette.astro';
 import CurrencySelect from '../components/CurrencySelect.astro';
 import SkinPicker from '../components/SkinPicker.astro';
 import ThemeToggle from '../components/ThemeToggle.astro';
@@ -70,7 +71,7 @@ const plausibleDomain = import.meta.env.PLAUSIBLE_DOMAIN as string | undefined;
     <meta property="og:image" content={ogImage} />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="Opus Calculator: free calculators for everyday questions" />
+    <meta property="og:image:alt" content="Opus Calculator: exact calculators for people and AI agents" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
@@ -97,8 +98,13 @@ const plausibleDomain = import.meta.env.PLAUSIBLE_DOMAIN as string | undefined;
           </span>
           <span class="sr-only sm:not-sr-only">Opus Calculator</span>
         </a>
-        <span class="ml-auto hidden text-sm text-muted lg:inline">Free calculators for everyday questions</span>
-        <div class="ml-auto flex items-center gap-2 lg:ml-0">
+        <nav aria-label="Main" class="ml-4 hidden items-center gap-4 text-sm font-medium lg:flex">
+          <a class="text-muted hover:text-fg" href="/agents/">
+            For AI agents
+          </a>
+        </nav>
+        <div class="ml-auto flex items-center gap-2">
+          <SearchPalette />
           <CurrencySelect />
           <SkinPicker />
           <ThemeToggle />
@@ -134,7 +140,7 @@ const plausibleDomain = import.meta.env.PLAUSIBLE_DOMAIN as string | undefined;
             ))}
           </ul>
         </nav>
-        <p>Opus Calculator: free calculators for everyday questions.</p>
+        <p>Opus Calculator: exact calculators for people and AI agents.</p>
       </div>
     </footer>
   </body>

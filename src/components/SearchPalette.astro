@@ -1,0 +1,146 @@
+---
+// Site search: a button in the header (and the "/" key) opens a dialog that filters the published calculators as you type.
+// The index is /calculators.json, fetched on first open, so a visitor who never searches downloads nothing extra. Published
+// calculators only (CLAUDE.md rule 6), because that file lists only those.
+---
+
+<button
+  type="button"
+  data-search-open
+  aria-haspopup="dialog"
+  class="inline-flex h-10 cursor-pointer items-center gap-2 rounded-md border border-border-strong bg-card px-3 text-sm text-muted transition-colors hover:bg-accent-soft hover:text-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+>
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+    <circle cx="11" cy="11" r="7"></circle>
+    <path d="M21 21l-4.3-4.3"></path>
+  </svg>
+  <span class="max-sm:sr-only">Search</span>
+  <kbd class="hidden rounded border border-border px-1.5 text-xs sm:inline" aria-hidden="true">
+    /
+  </kbd>
+</button>
+
+<dialog
+  data-search-dialog
+  aria-label="Search calculators"
+  class="opus-dialog m-auto mt-16 w-full max-w-xl overflow-hidden rounded-lg border border-border bg-card p-0 text-fg shadow-md backdrop:bg-fg/40 backdrop:backdrop-blur-sm max-sm:mt-0 max-sm:max-w-none max-sm:rounded-t-none"
+>
+  <div class="border-b border-border p-3">
+    <label for="site-search" class="sr-only">
+      Search calculators
+    </label>
+    <input
+      id="site-search"
+      type="search"
+      autocomplete="off"
+      placeholder="Search calculators, e.g. mortgage, BMI, percentage"
+      class="block w-full rounded-md border border-border-strong bg-bg px-3 py-2 text-base text-fg"
+      data-search-input
+    />
+  </div>
+  <ul class="max-h-[60vh] overflow-y-auto p-2" data-search-results></ul>
+  <p class="border-t border-border px-4 py-2 text-xs text-muted" data-search-status role="status" aria-live="polite">
+    Type to search.
+  </p>
+</dialog>
+
+<script>
+  interface Entry {
+    title: string;
+    category: string;
+    description: string;
+    url: string;
+  }
+  const dialog = document.querySelector<HTMLDialogElement>('[data-search-dialog]');
+  const input = dialog?.querySelector<HTMLInputElement>('[data-search-input]');
+  const list = dialog?.querySelector<HTMLElement>('[data-search-results]');
+  const status = dialog?.querySelector<HTMLElement>('[data-search-status]');
+  let entries: Entry[] | null = null;
+
+  async function load(): Promise<Entry[]> {
+    if (entries) return entries;
+    try {
+      const res = await fetch('/calculators.json');
+      entries = ((await res.json()) as { calculators: Entry[] }).calculators;
+    } catch {
+      entries = [];
+    }
+    return entries;
+  }
+
+  function score(e: Entry, terms: string[]): number {
+    const title = e.title.toLowerCase();
+    const rest = `${e.category} ${e.description}`.toLowerCase();
+    let s = 0;
+    for (const t of terms) {
+      if (title.startsWith(t)) s += 4;
+      else if (title.includes(t)) s += 3;
+      else if (rest.includes(t)) s += 1;
+      else return 0;
+    }
+    return s;
+  }
+
+  async function render() {
+    if (!list || !input || !status) return;
+    const all = await load();
+    const terms = input.value.toLowerCase().split(/\s+/).filter(Boolean);
+    const hits = terms.length
+      ? all
+          .map((e) => ({ e, s: score(e, terms) }))
+          .filter((x) => x.s > 0)
+          .sort((a, b) => b.s - a.s)
+          .slice(0, 8)
+      : all.slice(0, 8).map((e) => ({ e, s: 1 }));
+    list.replaceChildren(
+      ...hits.map(({ e }) => {
+        const li = document.createElement('li');
+        const a = document.createElement('a');
+        a.href = new URL(e.url).pathname;
+        a.className = 'block rounded-md px-3 py-2 hover:bg-accent-soft focus-visible:outline-2 focus-visible:outline-accent';
+        const t = document.createElement('span');
+        t.className = 'block font-medium text-accent-strong';
+        t.textContent = e.title;
+        const c = document.createElement('span');
+        c.className = 'block text-xs capitalize text-muted';
+        c.textContent = e.category;
+        a.append(t, c);
+        li.append(a);
+        return li;
+      }),
+    );
+    status.textContent = terms.length
+      ? hits.length
+        ? `${hits.length} result${hits.length === 1 ? '' : 's'}`
+        : 'No calculator matches that yet.'
+      : 'Type to search.';
+  }
+
+  function open() {
+    if (!dialog || dialog.open) return;
+    dialog.showModal();
+    input?.focus();
+    void render();
+  }
+  document.querySelectorAll('[data-search-open]').forEach((b) => b.addEventListener('click', open));
+  input?.addEventListener('input', () => void render());
+  input?.addEventListener('keydown', (ev) => {
+    if (ev.key === 'Enter') list?.querySelector<HTMLAnchorElement>('a')?.click();
+    if (ev.key === 'ArrowDown') list?.querySelector<HTMLAnchorElement>('a')?.focus();
+  });
+  list?.addEventListener('keydown', (ev) => {
+    const a = document.activeElement as HTMLElement;
+    if (ev.key === 'ArrowDown') (a.closest('li')?.nextElementSibling?.querySelector('a') as HTMLElement | null)?.focus();
+    if (ev.key === 'ArrowUp') ((a.closest('li')?.previousElementSibling?.querySelector('a') as HTMLElement | null) ?? input)?.focus();
+  });
+  dialog?.addEventListener('click', (ev) => {
+    if (ev.target === dialog) dialog.close();
+  });
+  document.addEventListener('keydown', (ev) => {
+    const t = ev.target as HTMLElement;
+    if (ev.key === '/' && !ev.metaKey && !ev.ctrlKey && !/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName) && !t.isContentEditable) {
+      ev.preventDefault();
+      open();
+    }
+  });
+</script>
