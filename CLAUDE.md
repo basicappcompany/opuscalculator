@@ -83,6 +83,14 @@ Renamed on 26 Nov 2026 from calculator365.net to Opus Calculator, at opuscalcula
 - Symbol and formatting only: typed numbers are never converted. The server HTML always ships the calculator's own currency (rule 2); the chosen or detected currency re-formats in the browser after load. Detection uses Cloudflare's `/cdn-cgi/trace` then the browser language, never the browser's geolocation prompt, and is skipped on local hosts.
 - No flags for currencies. A future language picker uses language names, not flags.
 
+## CALCULATOR TOOLBAR AND AI-ERA DISCOVERY (owner request, 27 Nov; plan/PROMPT 19)
+
+- Every calculator page, all 1,171 in the registry and every one a generator adds later, shows the same toolbar, in our own design and not a copy of Omni Calculator's: Share this page, Cite this calculator, Share result (inputs in the query string, canonical stays the clean URL), Reset / Clear all changes, an Add-as-preferred-source-on-Google link, Helpful Yes/No (an analytics event only, not rendered until the analytics tool is chosen, 12.9) and Embed code (`/embed/<slug>/`, noindex, canonical to the real page; only `/embed/*` may be framed).
+- It lives in the shared page template and widget, never per calculator. `verify-dist` fails the build if a built calculator page lacks a control or a published calculator lacks its embed page. Nothing on it stores data on our side (rule 4); anything that adds a host, a script or a stored value updates the CSP, `KNOWN_HOSTS` and `/privacy` in the same pull request.
+- AI-era discovery is part of the same requirement: `/llms.txt`, a markdown rendering of each published calculator, structured answers for AI search, and an MCP server that runs the same decimal.js `calculate()` functions as the pages. Published calculators only (rule 6).
+- Deferred on purpose (item 20.9): thumbs up/down with a public count and a feedback form, because they need storage or a mailbox.
+- Progress is tracked as phase 20 of `docs/status.html`.
+
 ## YMYL RULES (Prompt 12)
 
 - Every calculator in a YMYL category (health, finance, tax, legal, construction, chemistry, food, biology) renders a category disclaimer in the initial HTML, directly below the results card and above the ad slot, as `<aside role="note" class="disclaimer">`: not a modal, not a tooltip, not JavaScript-rendered. Texts are in `src/content/disclaimers.ts`. Non-YMYL categories (math, physics, conversion, everyday-life, statistics, sports, ecology) show none.
