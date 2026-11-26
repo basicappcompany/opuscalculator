@@ -22,6 +22,12 @@ export default function main(): number {
   console.log(`  live now (published and cohort flag on): ${registry.valid.filter(isPublished).length}`);
   console.log('');
 
+  const withRefs = registry.valid.filter((c) => (c.references?.length ?? 0) > 0);
+  const liveWithRefs = registry.valid.filter((c) => isPublished(c) && (c.references?.length ?? 0) > 0);
+  console.log(
+    `With verified references (item 20.12): ${withRefs.length} of ${registry.valid.length}; live: ${liveWithRefs.length} of ${registry.valid.filter(isPublished).length}`,
+  );
+
   const flagged = registry.valid.filter((c) => c.audit);
   console.log(
     `Flagged by the catalog audit (src/config/catalog-audit.ts): ${flagged.length} (weak ${flagged.filter((c) => c.audit?.grade === 'weak').length}, niche ${flagged.filter((c) => c.audit?.grade === 'niche').length}), live: ${flagged.filter(isPublished).length}`,

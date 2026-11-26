@@ -2,6 +2,9 @@
 dist/
 # generated types
 .astro/
+# the MCP server bundle and its generated entry (scripts/build-mcp.ts), rebuilt by every npm run build
+.mcp/
+.mcp-src/
 
 # dependencies
 node_modules/
@@ -13,9 +16,26 @@ yarn-error.log*
 pnpm-debug.log*
 
 
-# environment variables
+# environment variables and anything else that can hold a secret. .env.example is the only one that is committed (names only).
 .env
-.env.production
+.env.*
+!.env.example
+.dev.vars
+.dev.vars.*
+# keys, certificates and credential files
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+credentials*.json
+*service-account*.json
+*-credentials.json
+secrets.*
+# Claude Code local settings and the local-only key file (the user's global ignore is not enough: a fresh clone has none)
+.claude/settings.local.json
+.claude/*.local.json
 
 # macOS-specific files
 .DS_Store

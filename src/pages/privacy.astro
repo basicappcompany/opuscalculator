@@ -15,6 +15,14 @@ import { SITE } from '../config/site';
     they are not stored once you leave the page.
   </p>
 
+  <h2>AI assistants and the MCP endpoint</h2>
+  <p>
+    AI assistants and other programs can run the calculators through an open endpoint at <code>/mcp</code>. It works like the calculators on the pages: the
+    numbers a program sends are used to work out the answer and are not stored by us, and the endpoint does not set cookies or call any other service. As with
+    any request to the site, our hosting provider may record the address, time and size of the request in its server logs (see "Hosting and server logs" below).
+    The pages <code>/llms.txt</code>, <code>/calculators.json</code> and the markdown copies of each calculator are plain files with no tracking.
+  </p>
+
   <h2>Analytics</h2>
   <p>
     To learn which pages are useful, the site uses a cookie-free analytics service, <a href="https://plausible.io/data-policy">Plausible Analytics</a>. It sets

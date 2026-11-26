@@ -23,6 +23,21 @@
   ! Content-Security-Policy
   Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://plausible.io; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://plausible.io; object-src 'none'; frame-ancestors *; base-uri 'self'; form-action 'self'
 
+# Markdown copies of the calculators (/calculators/<slug>.md) are for AI assistants and agents. They repeat the page, so
+# search engines are told not to index them; llms.txt points at them and they stay fetchable.
+/calculators/*.md
+  X-Robots-Tag: noindex
+  Content-Type: text/markdown; charset=utf-8
+
+# The MCP endpoint answers JSON about the caller's own request: never cached, never indexed.
+/mcp
+  Cache-Control: no-store
+  X-Robots-Tag: noindex
+
+# The JSON index of published calculators is for programs, not search results.
+/calculators.json
+  X-Robots-Tag: noindex
+
 # Hashed build assets never change under the same name, so browsers and Cloudflare may keep them for a year.
 /_astro/*
   Cache-Control: public, max-age=31536000, immutable
