@@ -1,10 +1,12 @@
 ---
-// The toolbar every calculator page shows (plan/PROMPT 19): share the page, cite it, embed it, add the site as a
-// preferred source on Google. "Share result" and "Clear all changes" live in the widget because they need its inputs.
-// Static HTML: the citation and the embed code are in the page without JavaScript; the script only adds the buttons'
-// behaviour (share sheet, copy). Nothing is stored, and nothing is loaded from another host.
+// The toolbar every calculator page shows (plan/PROMPT 19): Share, Cite and Embed open our own dialogs (a bottom sheet on a
+// phone, a centred card on a desktop), and a plain link adds the site as a preferred source on Google. "Share result" and
+// "Clear all changes" live in the widget because they need its inputs; "Share result" opens the same Share dialog.
+// The text of every dialog is in the page HTML (citations, embed code, share links), so nothing here depends on a script to
+// be readable by a person or a crawler; the script only opens the dialogs and copies. Nothing is stored, and nothing is
+// loaded from another host until a visitor clicks a share link.
 import type { CalculatorConfig } from '../../lib/types';
-import { citationLines, embedPath, embedSnippet, preferredSourceUrl } from '../../lib/toolbar';
+import { citationFormats, embedPath, embedSnippet, preferredSourceUrl, shareLinks } from '../../lib/toolbar';
 
 interface Props {
   config: CalculatorConfig;
@@ -12,126 +14,251 @@ interface Props {
 const { config } = Astro.props;
 const url = new URL(`/calculators/${config.slug}/`, Astro.site).href;
 const embedUrl = new URL(embedPath(config.slug), Astro.site).href;
-const cite = citationLines(config.h1, url, config.lastUpdated);
-const snippet = embedSnippet(embedUrl, `${config.h1} (Opus Calculator)`);
+const citations = citationFormats(config.h1, url, config.lastUpdated, config.slug);
+const embedTitle = `${config.h1} (Opus Calculator)`;
+const snippet = embedSnippet(embedUrl, embedTitle);
+const links = shareLinks(url, config.h1);
 
 const button =
   'inline-flex h-9 cursor-pointer items-center justify-center gap-2 rounded-md border border-border-strong bg-card px-3 text-sm font-medium text-fg transition-colors hover:bg-accent-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent';
-const panel = 'mt-2 w-full rounded-md border border-border bg-card p-3 text-sm';
-const field = 'mt-1 block w-full rounded-md border border-border-strong bg-bg p-2 font-mono text-xs text-fg';
+const primary =
+  'inline-flex h-10 shrink-0 cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-md bg-accent px-4 text-sm font-medium text-accent-fg transition-colors hover:bg-accent-strong focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent';
+const ghost =
+  'inline-flex size-9 cursor-pointer items-center justify-center rounded-md text-muted transition-colors hover:bg-accent-soft hover:text-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent';
+// A modal on a desktop, a sheet that rises from the bottom edge on a phone. The wrapper inside has the padding, so a click on
+// the dim area (the dialog itself) is the only click that closes it.
+const dialog =
+  'opus-dialog m-auto w-full max-w-lg overflow-hidden rounded-lg border border-border bg-card p-0 text-fg shadow-md backdrop:bg-fg/40 backdrop:backdrop-blur-sm max-sm:mb-0 max-sm:max-w-none max-sm:rounded-b-none';
+const field = 'block w-full rounded-md border border-border-strong bg-bg px-3 py-2 text-sm text-fg';
+const tab =
+  'cursor-pointer rounded-md px-3 py-1.5 text-sm font-medium text-muted transition-colors hover:bg-accent-soft hover:text-fg aria-selected:bg-accent aria-selected:text-accent-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent';
+const icon = {
+  width: '16',
+  height: '16',
+  viewBox: '0 0 24 24',
+  fill: 'none',
+  stroke: 'currentColor',
+  'stroke-width': '2',
+  'stroke-linecap': 'round',
+  'stroke-linejoin': 'round',
+  'aria-hidden': 'true',
+} as const;
 ---
 
 <section aria-label="Share, cite and embed this calculator" data-toolbar-root class="mb-5 flex flex-wrap items-start gap-2">
-  <button type="button" class={button} data-toolbar="share" data-url={url} data-title={config.h1}>
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      stroke-width="2"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-      aria-hidden="true"
-    >
+  <button type="button" class={button} data-toolbar="share" data-open="share" aria-haspopup="dialog">
+    <svg {...icon}>
       <circle cx="18" cy="5" r="3"></circle>
       <circle cx="6" cy="12" r="3"></circle>
       <circle cx="18" cy="19" r="3"></circle>
       <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
       <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
     </svg>
-    <span data-label>Share</span>
+    Share
   </button>
-
-  <details data-toolbar="cite" class="group open:w-full">
-    <summary class={`${button} list-none [&::-webkit-details-marker]:hidden`}>
-      <svg
-        width="16"
-        height="16"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        aria-hidden="true"
-      >
-        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-        <path d="M14 2v6h6"></path>
-        <path d="M16 13H8"></path>
-        <path d="M16 17H8"></path>
-        <path d="M10 9H8"></path>
-      </svg>
-      Cite
-    </summary>
-    <div class={panel}>
-      <label for={`cite-apa-${config.slug}`} class="font-medium">
-        APA
-      </label>
-      <textarea id={`cite-apa-${config.slug}`} readonly rows="3" class={field}>{cite.apa}</textarea>
-      <label for={`cite-plain-${config.slug}`} class="mt-3 block font-medium">
-        Plain text
-      </label>
-      <textarea id={`cite-plain-${config.slug}`} readonly rows="2" class={field}>{cite.plain}</textarea>
-      <button type="button" class={`${button} mt-3`} data-copy-from={`cite-apa-${config.slug}`}>
-        <span data-label>Copy APA citation</span>
-      </button>
-    </div>
-  </details>
-
-  <details data-toolbar="embed" class="group open:w-full">
-    <summary class={`${button} list-none [&::-webkit-details-marker]:hidden`}>
-      <svg
-        width="16"
-        height="16"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        aria-hidden="true"
-      >
-        <polyline points="16 18 22 12 16 6"></polyline>
-        <polyline points="8 6 2 12 8 18"></polyline>
-      </svg>
-      Embed
-    </summary>
-    <div class={panel}>
-      <label for={`embed-${config.slug}`} class="font-medium">
-        Paste this on your page
-      </label>
-      <textarea id={`embed-${config.slug}`} readonly rows="4" class={field}>{snippet}</textarea>
-      <p class="mt-2 text-muted">The embedded calculator links back to this page. It is not indexed by search engines.</p>
-      <button type="button" class={`${button} mt-3`} data-copy-from={`embed-${config.slug}`}>
-        <span data-label>Copy embed code</span>
-      </button>
-    </div>
-  </details>
-
+  <button type="button" class={button} data-toolbar="cite" data-open="cite" aria-haspopup="dialog">
+    <svg {...icon}>
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+      <path d="M14 2v6h6"></path>
+      <path d="M16 13H8"></path>
+      <path d="M16 17H8"></path>
+      <path d="M10 9H8"></path>
+    </svg>
+    Cite
+  </button>
+  <button type="button" class={button} data-toolbar="embed" data-open="embed" aria-haspopup="dialog">
+    <svg {...icon}>
+      <polyline points="16 18 22 12 16 6"></polyline>
+      <polyline points="8 6 2 12 8 18"></polyline>
+    </svg>
+    Embed
+  </button>
   <a class={button} data-toolbar="preferred" href={preferredSourceUrl()} target="_blank" rel="noopener noreferrer">
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      stroke-width="2"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-      aria-hidden="true"
-    >
+    <svg {...icon}>
       <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
     </svg>
     Add as a preferred source on Google<span class="sr-only"> (opens in a new tab)</span>
   </a>
 
-  <span role="status" aria-live="polite" class="sr-only" data-toolbar-status></span>
+  <!-- Share -->
+  <dialog class={dialog} data-dialog="share" aria-labelledby="share-title" data-url={url} data-title={config.h1}>
+    <div class="flex items-start justify-between gap-3 border-b border-border px-5 py-4">
+      <div>
+        <h2 id="share-title" class="text-lg font-bold" data-share-heading>
+          Share this calculator
+        </h2>
+        <p class="text-sm text-muted" data-share-sub>
+          {config.h1}
+        </p>
+      </div>
+      <button type="button" class={ghost} data-close aria-label="Close">
+        <svg {...icon}>
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+    <div class="space-y-4 px-5 py-4">
+      <div>
+        <label for={`share-url-${config.slug}`} class="mb-1 block text-sm font-medium">
+          Share link
+        </label>
+        <div class="flex gap-2">
+          <input id={`share-url-${config.slug}`} readonly value={url} class={field} data-share-url />
+          <button type="button" class={primary} data-copy-from={`share-url-${config.slug}`}>
+            <span data-label>Copy link</span>
+          </button>
+        </div>
+      </div>
+      <div hidden data-share-summary-wrap>
+        <label for={`share-summary-${config.slug}`} class="mb-1 block text-sm font-medium">
+          Your result
+        </label>
+        <textarea id={`share-summary-${config.slug}`} readonly rows="3" class={field} data-share-summary></textarea>
+        <button type="button" class={`${button} mt-2`} data-copy-from={`share-summary-${config.slug}`}>
+          <span data-label>Copy result text</span>
+        </button>
+      </div>
+      <div>
+        <p class="mb-2 text-sm font-medium">Share with</p>
+        <ul class="grid grid-cols-2 gap-2 sm:grid-cols-3" data-share-links>
+          {links.map((l) => (
+            <li>
+              <a href={l.href} target="_blank" rel="noopener noreferrer" data-network={l.id} class={`${button} w-full`}>
+                {l.label}
+                <span class="sr-only"> (opens in a new tab)</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+      <button type="button" class={`${button} w-full`} data-native-share hidden>
+        More sharing options on this device
+      </button>
+      <p class="text-xs text-muted">These are plain links: nothing is sent to those sites until you choose one.</p>
+    </div>
+    <p role="status" aria-live="polite" class="sr-only" data-dialog-status></p>
+  </dialog>
+
+  <!-- Cite -->
+  <dialog class={dialog} data-dialog="cite" aria-labelledby="cite-title">
+    <div class="flex items-start justify-between gap-3 border-b border-border px-5 py-4">
+      <div>
+        <h2 id="cite-title" class="text-lg font-bold">
+          Cite this calculator
+        </h2>
+        <p class="text-sm text-muted">Pick a style, then copy. Dated by when this page was last updated.</p>
+      </div>
+      <button type="button" class={ghost} data-close aria-label="Close">
+        <svg {...icon}>
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+    <div class="space-y-3 px-5 py-4">
+      <div role="tablist" aria-label="Citation style" class="flex flex-wrap gap-1" data-tabs>
+        {citations.map((c, i) => (
+          <button
+            type="button"
+            role="tab"
+            id={`cite-tab-${c.id}`}
+            aria-controls={`cite-panel-${c.id}`}
+            aria-selected={i === 0 ? 'true' : 'false'}
+            tabindex={i === 0 ? 0 : -1}
+            data-tab={c.id}
+            class={tab}
+          >
+            {c.label}
+          </button>
+        ))}
+      </div>
+      {citations.map((c, i) => (
+        <div role="tabpanel" id={`cite-panel-${c.id}`} aria-labelledby={`cite-tab-${c.id}`} hidden={i !== 0} data-panel={c.id}>
+          <label for={`cite-text-${c.id}`} class="sr-only">
+            {c.label} citation
+          </label>
+          <textarea id={`cite-text-${c.id}`} readonly rows={c.id === 'bibtex' ? 7 : 4} class={`${field} font-mono`}>{c.text}</textarea>
+        </div>
+      ))}
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <button type="button" class={primary} data-copy-active>
+          <span data-label>Copy citation</span>
+        </button>
+        <p class="text-xs text-muted">Citing your own numbers? Use "Share result" on the calculator.</p>
+      </div>
+    </div>
+    <p role="status" aria-live="polite" class="sr-only" data-dialog-status></p>
+  </dialog>
+
+  <!-- Embed -->
+  <dialog class={dialog} data-dialog="embed" aria-labelledby="embed-title" data-embed-url={embedUrl} data-embed-title={embedTitle}>
+    <div class="flex items-start justify-between gap-3 border-b border-border px-5 py-4">
+      <div>
+        <h2 id="embed-title" class="text-lg font-bold">
+          Embed this calculator
+        </h2>
+        <p class="text-sm text-muted">Show it on your own page. It links back here and is not indexed by search engines.</p>
+      </div>
+      <button type="button" class={ghost} data-close aria-label="Close">
+        <svg {...icon}>
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+    <div class="space-y-4 px-5 py-4">
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label for={`embed-width-${config.slug}`} class="mb-1 block text-sm font-medium">
+            Embed width
+          </label>
+          <select id={`embed-width-${config.slug}`} class={field} data-embed-width>
+            <option value="100%">Fill the space (recommended)</option>
+            <option value="480">480 wide</option>
+            <option value="640">640 wide</option>
+            <option value="800">800 wide</option>
+          </select>
+        </div>
+        <div>
+          <label for={`embed-height-${config.slug}`} class="mb-1 block text-sm font-medium">
+            Embed height
+          </label>
+          <select id={`embed-height-${config.slug}`} class={field} data-embed-height>
+            <option value="560">Short (560)</option>
+            <option value="640" selected>
+              Standard (640)
+            </option>
+            <option value="760">Tall (760)</option>
+            <option value="900">Extra tall (900)</option>
+          </select>
+        </div>
+      </div>
+      <div>
+        <label for={`embed-code-${config.slug}`} class="mb-1 block text-sm font-medium">
+          Paste this on your page
+        </label>
+        <textarea id={`embed-code-${config.slug}`} readonly rows="4" class={`${field} font-mono`} data-embed-code>{snippet}</textarea>
+      </div>
+      <div class="flex flex-wrap items-center gap-2">
+        <button type="button" class={primary} data-copy-from={`embed-code-${config.slug}`}>
+          <span data-label>Copy embed code</span>
+        </button>
+        <a href={embedUrl} target="_blank" rel="noopener" class={button}>
+          Preview the embedded copy<span class="sr-only"> (opens in a new tab)</span>
+        </a>
+      </div>
+    </div>
+    <p role="status" aria-live="polite" class="sr-only" data-dialog-status></p>
+  </dialog>
 </section>
 
 <script>
+  import { embedSnippet, shareLinks } from '../../lib/toolbar';
+
   const root = document.querySelector<HTMLElement>('[data-toolbar-root]');
-  const status = root?.querySelector<HTMLElement>('[data-toolbar-status]');
+  const dialogs = new Map<string, HTMLDialogElement>();
+  root?.querySelectorAll<HTMLDialogElement>('dialog[data-dialog]').forEach((d) => dialogs.set(d.dataset.dialog ?? '', d));
 
   async function copyText(text: string): Promise<boolean> {
     try {
@@ -142,11 +269,12 @@ const field = 'mt-1 block w-full rounded-md border border-border-strong bg-bg p-
     }
   }
 
-  /** Shows a short confirmation on the button and tells screen readers once. */
-  function confirm(button: HTMLElement, done: string, message: string) {
+  /** A short confirmation on the button, and once for screen readers. */
+  function confirm(dialog: HTMLDialogElement, button: HTMLElement, done: string, message: string) {
     const label = button.querySelector<HTMLElement>('[data-label]');
     const original = label?.textContent ?? '';
     if (label) label.textContent = done;
+    const status = dialog.querySelector<HTMLElement>('[data-dialog-status]');
     if (status) status.textContent = message;
     setTimeout(() => {
       if (label) label.textContent = original;
@@ -154,27 +282,124 @@ const field = 'mt-1 block w-full rounded-md border border-border-strong bg-bg p-
     }, 2000);
   }
 
-  root?.querySelector<HTMLButtonElement>('[data-toolbar="share"]')?.addEventListener('click', async (event) => {
-    const button = event.currentTarget as HTMLButtonElement;
-    const url = button.dataset.url ?? location.href;
-    const title = button.dataset.title ?? document.title;
-    if (typeof navigator.share === 'function') {
-      try {
-        await navigator.share({ title, url });
-        return;
-      } catch (error) {
-        if (error instanceof DOMException && error.name === 'AbortError') return; // the visitor closed the share sheet
-      }
-    }
-    if (await copyText(url)) confirm(button, 'Link copied', 'Link to this calculator copied');
-  });
+  function open(name: string) {
+    const dialog = dialogs.get(name);
+    if (!dialog || dialog.open) return;
+    dialog.showModal();
+    document.documentElement.classList.add('overflow-hidden');
+  }
 
-  root?.querySelectorAll<HTMLButtonElement>('[data-copy-from]').forEach((button) => {
-    button.addEventListener('click', async () => {
-      const box = document.getElementById(button.dataset.copyFrom ?? '') as HTMLTextAreaElement | null;
-      if (!box) return;
-      box.select();
-      if (await copyText(box.value)) confirm(button, 'Copied', 'Copied to the clipboard');
+  dialogs.forEach((dialog) => {
+    dialog.addEventListener('close', () => document.documentElement.classList.remove('overflow-hidden'));
+    // The wrapper has the padding, so a click that lands on the dialog itself is a click on the dimmed area.
+    dialog.addEventListener('click', (event) => {
+      if (event.target === dialog) dialog.close();
+    });
+    dialog.querySelectorAll<HTMLElement>('[data-close]').forEach((b) => b.addEventListener('click', () => dialog.close()));
+    dialog.querySelectorAll<HTMLElement>('[data-copy-from]').forEach((button) => {
+      button.addEventListener('click', async () => {
+        const box = document.getElementById(button.dataset.copyFrom ?? '') as HTMLInputElement | HTMLTextAreaElement | null;
+        if (!box) return;
+        box.select();
+        if (await copyText(box.value)) confirm(dialog, button, 'Copied', 'Copied to the clipboard');
+      });
     });
   });
+
+  root?.querySelectorAll<HTMLElement>('[data-open]').forEach((b) => b.addEventListener('click', () => open(b.dataset.open ?? '')));
+
+  // ---- Share: the page, or (from the widget) the visitor's own result ----
+  const share = dialogs.get('share');
+  if (share) {
+    const urlBox = share.querySelector<HTMLInputElement>('[data-share-url]');
+    const heading = share.querySelector<HTMLElement>('[data-share-heading]');
+    const sub = share.querySelector<HTMLElement>('[data-share-sub]');
+    const summaryWrap = share.querySelector<HTMLElement>('[data-share-summary-wrap]');
+    const summary = share.querySelector<HTMLTextAreaElement>('[data-share-summary]');
+    const native = share.querySelector<HTMLButtonElement>('[data-native-share]');
+    const pageUrl = share.dataset.url ?? location.href;
+    const pageTitle = share.dataset.title ?? document.title;
+    let current = { url: pageUrl, title: pageTitle, text: '' };
+
+    const show = (next: { url: string; title: string; text?: string; result?: boolean }) => {
+      current = { url: next.url, title: next.title, text: next.text ?? '' };
+      if (urlBox) urlBox.value = next.url;
+      if (heading) heading.textContent = next.result ? 'Share your result' : 'Share this calculator';
+      if (sub) sub.textContent = next.result ? 'This link reopens the calculator with your numbers filled in.' : next.title;
+      if (summaryWrap) summaryWrap.hidden = !next.result || !next.text;
+      if (summary) summary.value = next.text ?? '';
+      for (const l of shareLinks(next.url, next.title, next.text ?? '')) {
+        const a = share.querySelector<HTMLAnchorElement>(`[data-network="${l.id}"]`);
+        if (a) a.href = l.href;
+      }
+    };
+
+    if (native && typeof navigator.share === 'function') {
+      native.hidden = false;
+      native.addEventListener('click', async () => {
+        try {
+          await navigator.share({ title: current.title, url: current.url, ...(current.text ? { text: current.text } : {}) });
+        } catch {
+          /* the visitor closed the system sheet */
+        }
+      });
+    }
+    urlBox?.addEventListener('focus', () => urlBox.select());
+
+    root?.querySelector<HTMLElement>('[data-open="share"]')?.addEventListener('click', () => show({ url: pageUrl, title: pageTitle }));
+    // The widget's "Share result" asks this dialog to open with the visitor's link. Cancelling the event tells the widget it was handled.
+    window.addEventListener('opus:share', (event) => {
+      const detail = (event as CustomEvent<{ url: string; title: string; text?: string }>).detail;
+      if (!detail?.url) return;
+      event.preventDefault();
+      show({ ...detail, result: true });
+      open('share');
+    });
+  }
+
+  // ---- Cite: tabs for the citation styles ----
+  const cite = dialogs.get('cite');
+  if (cite) {
+    const tabs = [...cite.querySelectorAll<HTMLButtonElement>('[role="tab"]')];
+    const select = (tab: HTMLButtonElement, focus = false) => {
+      tabs.forEach((t) => {
+        const on = t === tab;
+        t.setAttribute('aria-selected', String(on));
+        t.tabIndex = on ? 0 : -1;
+        const panel = cite.querySelector<HTMLElement>(`[data-panel="${t.dataset.tab}"]`);
+        if (panel) panel.hidden = !on;
+      });
+      if (focus) tab.focus();
+    };
+    tabs.forEach((tab, i) => {
+      tab.addEventListener('click', () => select(tab));
+      tab.addEventListener('keydown', (event) => {
+        const next =
+          event.key === 'ArrowRight' ? i + 1 : event.key === 'ArrowLeft' ? i - 1 : event.key === 'Home' ? 0 : event.key === 'End' ? tabs.length - 1 : -1;
+        if (next < 0) return;
+        event.preventDefault();
+        select(tabs[(next + tabs.length) % tabs.length], true);
+      });
+    });
+    cite.querySelector<HTMLButtonElement>('[data-copy-active]')?.addEventListener('click', async (event) => {
+      const active = tabs.find((t) => t.getAttribute('aria-selected') === 'true');
+      const box = cite.querySelector<HTMLTextAreaElement>(`[data-panel="${active?.dataset.tab}"] textarea`);
+      if (box && (await copyText(box.value))) confirm(cite, event.currentTarget as HTMLElement, 'Copied', `${active?.textContent?.trim()} citation copied`);
+    });
+  }
+
+  // ---- Embed: size options rewrite the snippet ----
+  const embed = dialogs.get('embed');
+  if (embed) {
+    const widthSel = embed.querySelector<HTMLSelectElement>('[data-embed-width]');
+    const heightSel = embed.querySelector<HTMLSelectElement>('[data-embed-height]');
+    const code = embed.querySelector<HTMLTextAreaElement>('[data-embed-code]');
+    const refresh = () => {
+      if (!code || !widthSel || !heightSel) return;
+      const w = widthSel.value === '100%' ? '100%' : Number(widthSel.value);
+      code.value = embedSnippet(embed.dataset.embedUrl ?? '', embed.dataset.embedTitle ?? '', Number(heightSel.value), w);
+    };
+    widthSel?.addEventListener('change', refresh);
+    heightSel?.addEventListener('change', refresh);
+  }
 </script>

@@ -127,3 +127,38 @@ body {
   background-clip: text;
   color: transparent;
 }
+
+/* Share, Cite and Embed dialogs (CalculatorToolbar): a short rise-and-fade, and a sheet that slides up on a phone. */
+.opus-dialog[open] {
+  animation: opus-dialog-in 180ms ease-out;
+}
+.opus-dialog[open]::backdrop {
+  animation: opus-dialog-fade 180ms ease-out;
+}
+@keyframes opus-dialog-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.75em) scale(0.98);
+  }
+}
+@keyframes opus-dialog-fade {
+  from {
+    opacity: 0;
+  }
+}
+@media (max-width: 40rem) {
+  .opus-dialog[open] {
+    animation-name: opus-sheet-in;
+  }
+  @keyframes opus-sheet-in {
+    from {
+      transform: translateY(100%);
+    }
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .opus-dialog[open],
+  .opus-dialog[open]::backdrop {
+    animation: none;
+  }
+}

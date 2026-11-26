@@ -3,20 +3,82 @@ import { announced, expectNoAxeViolations, openCalculator } from './helpers';
 
 // The toolbar every calculator carries (plan/PROMPT 19). These run on the five live calculators, one per layout family.
 test.describe('Calculator toolbar', () => {
-  test('cite, embed and the Google link are in the page, with the right text', async ({ page }) => {
+  test('Share opens our own dialog with the page link, a copy button and share links; Escape closes it and focus returns', async ({ page }) => {
     await openCalculator(page, 'bmi-calculator');
-    await page.locator('[data-toolbar="cite"] summary').click();
-    await expect(page.getByLabel('APA')).toHaveValue(
+    const opener = page.locator('[data-toolbar="share"]');
+    await opener.click();
+    const dialog = page.getByRole('dialog', { name: 'Share this calculator' });
+    await expect(dialog).toBeVisible();
+    await expect(dialog.getByLabel('Share link')).toHaveValue('https://opuscalculator.com/calculators/bmi-calculator/');
+    await expect(dialog.getByRole('button', { name: 'Copy link' })).toBeVisible();
+    const links = dialog.locator('[data-share-links] a');
+    await expect(links).toHaveCount(7);
+    await expect(dialog.locator('[data-network="linkedin"]')).toHaveAttribute(
+      'href',
+      /linkedin\.com\/sharing\/share-offsite\/\?url=https%3A%2F%2Fopuscalculator\.com/,
+    );
+    for (const a of await links.all()) await expect(a).toHaveAttribute('rel', /noopener/);
+    await expectNoAxeViolations(page);
+    await page.keyboard.press('Escape');
+    await expect(dialog).toBeHidden();
+    await expect(opener).toBeFocused();
+  });
+
+  test('Cite is a dialog with citation styles as tabs, switchable with the arrow keys', async ({ page }) => {
+    await openCalculator(page, 'bmi-calculator');
+    await page.locator('[data-toolbar="cite"]').click();
+    const dialog = page.getByRole('dialog', { name: 'Cite this calculator' });
+    await expect(dialog).toBeVisible();
+    await expect(dialog.getByRole('tab')).toHaveText(['APA', 'MLA', 'Chicago', 'BibTeX', 'Plain text']);
+    await expect(dialog.getByLabel('APA citation')).toHaveValue(
       /^Opus Calculator\. \(\d{4}, [A-Z][a-z]+ \d+\)\. .*\[Online calculator\]\. https:\/\/opuscalculator\.com\/calculators\/bmi-calculator\/$/,
     );
+    await dialog.getByRole('tab', { name: 'APA' }).focus();
+    await page.keyboard.press('ArrowRight');
+    await expect(dialog.getByRole('tab', { name: 'MLA' })).toHaveAttribute('aria-selected', 'true');
+    await expect(dialog.getByLabel('MLA citation')).toBeVisible();
+    await expect(dialog.getByLabel('APA citation')).toBeHidden();
+    await dialog.getByRole('tab', { name: 'BibTeX' }).click();
+    await expect(dialog.getByLabel('BibTeX citation')).toHaveValue(/^@misc\{opus_bmi_calculator,/);
+    await expectNoAxeViolations(page);
+  });
 
-    await page.locator('[data-toolbar="embed"] summary').click();
-    await expect(page.getByLabel('Paste this on your page')).toHaveValue(/<iframe src="https:\/\/opuscalculator\.com\/embed\/bmi-calculator\/"/);
+  test('Embed is a dialog whose size options rewrite the code; the preview link opens the embedded copy', async ({ page }) => {
+    await openCalculator(page, 'bmi-calculator');
+    await page.locator('[data-toolbar="embed"]').click();
+    const dialog = page.getByRole('dialog', { name: 'Embed this calculator' });
+    await expect(dialog).toBeVisible();
+    const code = dialog.getByLabel('Paste this on your page');
+    await expect(code).toHaveValue(/<iframe src="https:\/\/opuscalculator\.com\/embed\/bmi-calculator\/".*width="100%" height="640"/);
+    await dialog.getByLabel('Embed width').selectOption('480');
+    await dialog.getByLabel('Embed height').selectOption('760');
+    await expect(code).toHaveValue(/width="480" height="760"/);
+    await expect(dialog.getByRole('link', { name: /Preview the embedded copy/ })).toHaveAttribute('href', 'https://opuscalculator.com/embed/bmi-calculator/');
+    await expectNoAxeViolations(page);
+  });
 
+  test('clicking the dimmed area closes a dialog, and the Google link is a plain link', async ({ page }) => {
+    await openCalculator(page, 'bmi-calculator');
+    await page.locator('[data-toolbar="cite"]').click();
+    const dialog = page.getByRole('dialog', { name: 'Cite this calculator' });
+    await expect(dialog).toBeVisible();
+    await page.mouse.click(5, 5); // far outside the card
+    await expect(dialog).toBeHidden();
     const preferred = page.locator('[data-toolbar="preferred"]');
     await expect(preferred).toHaveAttribute('href', 'https://www.google.com/preferences/source?q=opuscalculator.com');
     await expect(preferred).toHaveAttribute('rel', /noopener/);
-    await expectNoAxeViolations(page);
+  });
+
+  test('Share result opens the same dialog in result mode, with the visitor link and a text summary', async ({ page }) => {
+    await openCalculator(page, 'bmi-calculator');
+    await page.getByLabel('Weight', { exact: true }).fill('85');
+    await expect(announced(page)).toContainText('Your BMI: 27.8');
+    await page.getByRole('button', { name: 'Share result' }).click();
+    const dialog = page.getByRole('dialog', { name: 'Share your result' });
+    await expect(dialog).toBeVisible();
+    await expect(dialog.getByLabel('Share link')).toHaveValue(/\/calculators\/bmi-calculator\/\?weight=85/);
+    await expect(dialog.getByLabel('Your result')).toHaveValue(/Your BMI: 27\.8/);
+    await expect(dialog.locator('[data-network="x"]')).toHaveAttribute('href', /weight%3D85/);
   });
 
   test('Clear all changes is disabled with a reason until something changes, then restores the defaults', async ({ page }) => {
