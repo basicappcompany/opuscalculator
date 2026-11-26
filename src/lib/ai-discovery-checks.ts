@@ -106,3 +106,31 @@ export function aiDiscoveryProblems(pages: ReadonlyMap<string, string>, files: A
   for (const slug of files.markdownSlugs) if (!published.has(slug)) problems.push(`${markdownPath(slug)} exists but ${slug} is not a published calculator`);
   return problems;
 }
+
+/**
+ * Item 20.7: /calculators.json is what the MCP server treats as "the calculators that exist", so it must list exactly the
+ * published calculator pages, each with its real URL (CLAUDE.md rule 6).
+ */
+export function calculatorIndexProblems(pages: ReadonlyMap<string, string>, indexJson: string | undefined, host = 'https://opuscalculator.com'): string[] {
+  if (indexJson === undefined) return ['dist/calculators.json is missing'];
+  let data: { count?: number; calculators?: { slug?: string; url?: string }[] };
+  try {
+    data = JSON.parse(indexJson);
+  } catch {
+    return ['dist/calculators.json is not valid JSON'];
+  }
+  const problems: string[] = [];
+  const listed = new Map((data.calculators ?? []).map((c) => [c.slug ?? '', c.url ?? '']));
+  const published = new Set<string>();
+  for (const path of pages.keys()) {
+    const slug = slugOf(path);
+    if (slug) published.add(slug);
+  }
+  for (const slug of listed.keys()) if (!published.has(slug)) problems.push(`calculators.json lists ${slug}, which is not a published calculator`);
+  for (const slug of published) {
+    if (!listed.has(slug)) problems.push(`calculators.json does not list the published calculator ${slug}`);
+    else if (listed.get(slug) !== `${host}/calculators/${slug}/`) problems.push(`calculators.json has the wrong URL for ${slug}`);
+  }
+  if (data.count !== listed.size) problems.push(`calculators.json says count ${data.count} but lists ${listed.size}`);
+  return problems;
+}

@@ -4,7 +4,7 @@
 // only for /admin/* (401 without a Cloudflare Access token) and the gone paths (410).
 import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { aiDiscoveryProblems, structuredAnswerProblems } from '../src/lib/ai-discovery-checks';
+import { aiDiscoveryProblems, calculatorIndexProblems, structuredAnswerProblems } from '../src/lib/ai-discovery-checks';
 import { checkDist } from '../src/lib/audit';
 import { REQUIRED_FOOTER_PATHS } from '../src/lib/static-pages';
 import { DIST, readPages, readSitemaps, unpublishedPaths } from './dist-reader';
@@ -20,6 +20,11 @@ export default function main(): number {
   const markdownSlugs = new Set((existsSync(calcDir) ? readdirSync(calcDir) : []).filter((n) => n.endsWith('.md')).map((n) => n.slice(0, -3)));
   problems.push(...aiDiscoveryProblems(pages, { llms: existsSync(llmsFile) ? readFileSync(llmsFile, 'utf8') : undefined, markdownSlugs }));
   problems.push(...structuredAnswerProblems(pages));
+  // The MCP server (item 20.7): its calculator list is /calculators.json, and its bundle is built by build-mcp.ts.
+  const indexFile = join(DIST, 'calculators.json');
+  problems.push(...calculatorIndexProblems(pages, existsSync(indexFile) ? readFileSync(indexFile, 'utf8') : undefined));
+  if (!existsSync(join('.mcp', 'mcp-core.mjs')))
+    problems.push('.mcp/mcp-core.mjs is missing: functions/mcp.ts has nothing to import (scripts/build-mcp.ts runs in npm run build)');
 
   const gone: string[] = (JSON.parse(readFileSync('src/config/gone.json', 'utf8')) as { paths: string[] }).paths;
   for (const path of gone) if (pages.has(path)) problems.push(`${path} is listed as gone (410) but is still a built page`);
@@ -31,7 +36,7 @@ export default function main(): number {
     if (problems.length > 50) console.error(`  ... and ${problems.length - 50} more`);
     return 1;
   }
-  writeFileSync(join(DIST, '_routes.json'), JSON.stringify({ version: 1, include: ['/admin/*', ...gone], exclude: [] }, null, 2) + '\n');
+  writeFileSync(join(DIST, '_routes.json'), JSON.stringify({ version: 1, include: ['/admin/*', '/mcp', ...gone], exclude: [] }, null, 2) + '\n');
   console.log(
     `verify-dist OK: ${pages.size} pages, ${files.length} sitemap file(s) with ${urls} URLs, no unpublished or duplicate URLs, no links to unpublished pages, ${gone.length} gone path(s).`,
   );

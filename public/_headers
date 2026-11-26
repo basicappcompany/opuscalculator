@@ -29,6 +29,15 @@
   X-Robots-Tag: noindex
   Content-Type: text/markdown; charset=utf-8
 
+# The MCP endpoint answers JSON about the caller's own request: never cached, never indexed.
+/mcp
+  Cache-Control: no-store
+  X-Robots-Tag: noindex
+
+# The JSON index of published calculators is for programs, not search results.
+/calculators.json
+  X-Robots-Tag: noindex
+
 # Hashed build assets never change under the same name, so browsers and Cloudflare may keep them for a year.
 /_astro/*
   Cache-Control: public, max-age=31536000, immutable

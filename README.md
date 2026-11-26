@@ -124,6 +124,16 @@ Connected and live since 27 Nov 2026 (tracker items 9.6 to 9.10). The project `o
 
 After the first deploy, run the checks that cannot run before it: `npm run audit:prelaunch -- --base https://opuscalculator.com --sample 20`, and `curl -I` on `/`, on a made-up URL (must be 404) and on `/admin/` (must be 401 or the Access login).
 
+## MCP server (AI assistants and agents)
+
+`https://opuscalculator.com/mcp` is a read-only Model Context Protocol server (stateless, plain HTTP: POST one JSON-RPC message, get one JSON reply). Tools: `list_calculators`, `describe_calculator` and `calculate`. `calculate` runs the same decimal.js code and the same zod validators as the page, so the numbers match; a test checks that for every calculator. It stores nothing and calls no other service.
+
+- **How it is built.** `npm run build` runs `scripts/build-mcp.ts`, which bundles every calculator and `src/mcp/protocol.ts` into `.mcp/mcp-core.mjs` (generated, git-ignored, about 570 KB gzipped; the build fails above 2.4 MB, because a Worker may be 3 MB compressed). `functions/mcp.ts` is the thin HTTP shell around it, and `dist/_routes.json` sends only `/admin/*`, `/mcp` and the gone paths to Functions.
+- **Which calculators exist.** Only those in `/calculators.json`, written by the same build as the site. A calculator that is not published cannot be listed, described or run. `verify-dist` fails if that file and the built pages disagree.
+- **Limits.** 16 KB request body, 100 characters per value, 40 inputs, and a best-effort 60 requests a minute per address that lives in one isolate's memory (a speed bump, not a guarantee). For a hard limit add a Cloudflare rate limiting rule for `/mcp` (Security, WAF, Rate limiting rules): that is a dashboard setting for the owner.
+- **Try it.** `curl -s https://opuscalculator.com/mcp -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"calculate","arguments":{"slug":"bmi-calculator","inputs":{"weight":85}}}}'`
+- **Privacy.** `/privacy` describes the endpoint; change it in the same pull request as any change to what the endpoint records.
+
 ## Protect /admin (Cloudflare Access)
 
 There is no deployed admin page yet: the indexation dashboard is rendered locally (`npm run dashboard`, tracker 12.10). If you decide to deploy one, put Cloudflare Access in front of it first:
