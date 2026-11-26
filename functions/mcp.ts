@@ -13,7 +13,7 @@
 
 import { overLimit } from '../src/mcp/rate-limit';
 
-// @ts-expect-error the bundle is generated at build time and untyped; the error is the same whether or not it exists yet
+// @ts-ignore the bundle is generated at build time and untyped: TypeScript errors on it before the first build and not after (so not ts-expect-error)
 import * as core from '../.mcp/mcp-core.mjs';
 
 interface Env {
@@ -23,9 +23,17 @@ interface Context {
   request: Request;
   env: Env;
 }
+interface IndexEntry {
+  slug: string;
+  title: string;
+  category: string;
+  description: string;
+  url: string;
+  markdown: string;
+}
 interface Core {
   MAX_BODY_BYTES: number;
-  handleMcp: (message: unknown, published: ReadonlySet<string>) => unknown;
+  handleMcp: (message: unknown, index: ReadonlyMap<string, IndexEntry>) => Promise<unknown>;
 }
 const mcp = core as unknown as Core;
 
@@ -40,16 +48,16 @@ const json = (body: unknown, status = 200, extra: Record<string, string> = {}): 
   new Response(JSON.stringify(body), { status, headers: { ...JSON_HEADERS, ...extra } });
 const rpcError = (status: number, code: number, message: string): Response => json({ jsonrpc: '2.0', id: null, error: { code, message } }, status);
 
-// Published slugs, cached for a minute per isolate.
-let published: { at: number; slugs: Set<string> } | null = null;
-async function publishedSlugs(request: Request, env: Env): Promise<Set<string>> {
-  if (published && Date.now() - published.at < 60_000) return published.slugs;
+// The published calculators (/calculators.json), cached for a minute per isolate.
+let published: { at: number; index: Map<string, IndexEntry> } | null = null;
+async function publishedIndex(request: Request, env: Env): Promise<Map<string, IndexEntry>> {
+  if (published && Date.now() - published.at < 60_000) return published.index;
   const res = await env.ASSETS.fetch(new Request(new URL('/calculators.json', request.url)));
   if (!res.ok) throw new Error(`calculators.json answered ${res.status}`);
-  const data = (await res.json()) as { calculators?: { slug?: string }[] };
-  const slugs = new Set((data.calculators ?? []).map((c) => c.slug).filter((s): s is string => typeof s === 'string'));
-  published = { at: Date.now(), slugs };
-  return slugs;
+  const data = (await res.json()) as { calculators?: IndexEntry[] };
+  const index = new Map((data.calculators ?? []).filter((c) => typeof c?.slug === 'string').map((c) => [c.slug, c]));
+  published = { at: Date.now(), index };
+  return index;
 }
 
 export const onRequestOptions = (): Response => new Response(null, { status: 204, headers: CORS });
@@ -78,12 +86,12 @@ export const onRequestPost = async ({ request, env }: Context): Promise<Response
   } catch {
     return rpcError(400, -32700, 'Parse error: the body is not valid JSON.');
   }
-  let slugs: Set<string>;
+  let index: Map<string, IndexEntry>;
   try {
-    slugs = await publishedSlugs(request, env);
+    index = await publishedIndex(request, env);
   } catch {
     return rpcError(503, -32000, 'The calculator index is unavailable. Try again shortly.');
   }
-  const reply = mcp.handleMcp(message, slugs);
+  const reply = await mcp.handleMcp(message, index);
   return reply === null ? new Response(null, { status: 202, headers: CORS }) : json(reply);
 };

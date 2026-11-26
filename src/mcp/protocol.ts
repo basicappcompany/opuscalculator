@@ -1,7 +1,7 @@
 /**
  * The Opus Calculator MCP server (plan/PROMPT 19, item 20.7): the Model Context Protocol over plain HTTP, stateless, read-only.
- * Pure functions over a catalog of configs, so they are tested against every calculator and the Pages Function is a thin
- * HTTP shell. An assistant that calls `calculate` gets the same numbers the page shows, because it runs the same
+ * Pure functions over an index of the published calculators and a loader for their configs, so they are tested against
+ * every calculator and the Pages Function is a thin HTTP shell. An assistant that calls `calculate` gets the same numbers the page shows, because it runs the same
  * decimal.js `calculate()` after the same zod validators.
  *
  * What it will not do: store anything, call another service, run anything but a calculator, or reveal a calculator that is
@@ -11,6 +11,7 @@ import { disclaimerFor } from '../content/disclaimers';
 import { defaultInputs } from '../lib/calc-utils';
 import { CATEGORY_LABELS } from '../lib/categories';
 import { markdownPath } from '../lib/markdown';
+import type { CalculatorIndexEntry } from '../lib/calculator-index';
 import { citationLines } from '../lib/toolbar';
 import type { CalculatorConfig } from '../lib/types';
 
@@ -25,9 +26,10 @@ export const MAX_INPUTS = 40;
 export const MAX_LIST = 50;
 
 export interface McpContext {
-  catalog: ReadonlyMap<string, CalculatorConfig>;
-  /** Slugs of the calculators the site publishes. Anything else does not exist as far as a caller can tell. */
-  published: ReadonlySet<string>;
+  /** The calculators the site publishes (/calculators.json), by slug. Anything else does not exist as far as a caller can tell. */
+  index: ReadonlyMap<string, CalculatorIndexEntry>;
+  /** Loads one calculator's config on demand, so the Function never builds the whole catalogue at startup. */
+  load: (slug: string) => Promise<CalculatorConfig | undefined>;
 }
 
 export interface JsonRpcError {
@@ -111,9 +113,13 @@ const toolError = (message: string): ToolResult => ({ content: [{ type: 'text', 
 const pageUrl = (slug: string): string => `${SITE}/calculators/${slug}/`;
 const summary = (c: CalculatorConfig) => ({ slug: c.slug, title: c.h1, category: c.category, description: c.metaDescription, url: pageUrl(c.slug) });
 
-function find(ctx: McpContext, slug: unknown): CalculatorConfig | undefined {
-  if (typeof slug !== 'string' || !ctx.published.has(slug)) return undefined;
-  return ctx.catalog.get(slug);
+async function find(ctx: McpContext, slug: unknown): Promise<CalculatorConfig | undefined> {
+  if (typeof slug !== 'string' || !ctx.index.has(slug)) return undefined;
+  try {
+    return await ctx.load(slug);
+  } catch {
+    return undefined;
+  }
 }
 
 const asRecord = (v: unknown): Record<string, unknown> => (v && typeof v === 'object' && !Array.isArray(v) ? (v as Record<string, unknown>) : {});
@@ -123,16 +129,16 @@ function listCalculators(ctx: McpContext, args: Record<string, unknown>): ToolRe
   const offset = Math.max(0, Number.isInteger(args.offset) ? (args.offset as number) : 0);
   const category = typeof args.category === 'string' ? args.category.trim().toLowerCase() : '';
   const words = typeof args.query === 'string' ? args.query.toLowerCase().split(/\s+/).filter(Boolean).slice(0, 8) : [];
-  const matches = [...ctx.published]
-    .sort()
-    .map((slug) => ctx.catalog.get(slug))
-    .filter((c): c is CalculatorConfig => Boolean(c))
+  const matches = [...ctx.index.values()]
+    .sort((a, b) => a.slug.localeCompare(b.slug))
     .filter((c) => !category || c.category === category)
     .filter((c) => {
-      const haystack = `${c.h1} ${c.metaDescription} ${c.slug}`.toLowerCase();
+      const haystack = `${c.title} ${c.description} ${c.slug}`.toLowerCase();
       return words.every((w) => haystack.includes(w));
     });
-  const page = matches.slice(offset, offset + limit).map(summary);
+  const page = matches
+    .slice(offset, offset + limit)
+    .map(({ slug, title, category: cat, description, url }) => ({ slug, title, category: cat, description, url }));
   const lines = page.map((c) => `- ${c.title} (${c.slug}): ${c.description}`);
   return text(
     `${matches.length} calculator${matches.length === 1 ? '' : 's'} found${page.length ? `, showing ${offset + 1} to ${offset + page.length}` : ''}.\n${lines.join('\n')}`,
@@ -140,8 +146,8 @@ function listCalculators(ctx: McpContext, args: Record<string, unknown>): ToolRe
   );
 }
 
-function describeCalculator(ctx: McpContext, args: Record<string, unknown>): ToolResult {
-  const c = find(ctx, args.slug);
+async function describeCalculator(ctx: McpContext, args: Record<string, unknown>): Promise<ToolResult> {
+  const c = await find(ctx, args.slug);
   if (!c) return toolError(`No calculator with the slug "${String(args.slug).slice(0, 100)}". Use list_calculators to find one.`);
   const structured = {
     ...summary(c),
@@ -169,8 +175,8 @@ function describeCalculator(ctx: McpContext, args: Record<string, unknown>): Too
   );
 }
 
-function calculate(ctx: McpContext, args: Record<string, unknown>): ToolResult {
-  const c = find(ctx, args.slug);
+async function calculate(ctx: McpContext, args: Record<string, unknown>): Promise<ToolResult> {
+  const c = await find(ctx, args.slug);
   if (!c) return toolError(`No calculator with the slug "${String(args.slug).slice(0, 100)}". Use list_calculators to find one.`);
   const given = asRecord(args.inputs);
   const names = new Set(c.inputs.flatMap((i) => (i.type === 'unit' && i.unitOptions?.length ? [i.name, `${i.name}Unit`] : [i.name])));
@@ -218,11 +224,11 @@ function calculate(ctx: McpContext, args: Record<string, unknown>): ToolResult {
   });
 }
 
-function callTool(ctx: McpContext, name: unknown, args: unknown): ToolResult | null {
+async function callTool(ctx: McpContext, name: unknown, args: unknown): Promise<ToolResult | null> {
   const a = asRecord(args);
   if (name === 'list_calculators') return listCalculators(ctx, a);
-  if (name === 'describe_calculator') return describeCalculator(ctx, a);
-  if (name === 'calculate') return calculate(ctx, a);
+  if (name === 'describe_calculator') return await describeCalculator(ctx, a);
+  if (name === 'calculate') return await calculate(ctx, a);
   return null;
 }
 
@@ -230,7 +236,7 @@ function callTool(ctx: McpContext, name: unknown, args: unknown): ToolResult | n
  * One JSON-RPC message in, one response out (null for a notification, which gets HTTP 202 and no body). Batches are not
  * accepted: the 2025-06-18 revision of the protocol removed them.
  */
-export function handleMcpMessage(message: unknown, ctx: McpContext): JsonRpcResponse | null {
+export async function handleMcpMessage(message: unknown, ctx: McpContext): Promise<JsonRpcResponse | null> {
   if (Array.isArray(message)) return fail(null, -32600, 'Batch requests are not supported. Send one message per request.');
   if (!message || typeof message !== 'object') return fail(null, -32600, 'Invalid request.');
   const m = message as { jsonrpc?: unknown; id?: unknown; method?: unknown; params?: unknown };
@@ -252,7 +258,7 @@ export function handleMcpMessage(message: unknown, ctx: McpContext): JsonRpcResp
     case 'tools/list':
       return ok(id, { tools: TOOLS });
     case 'tools/call': {
-      const result = callTool(ctx, params.name, params.arguments);
+      const result = await callTool(ctx, params.name, params.arguments);
       return result ? ok(id, result) : fail(id, -32602, `Unknown tool: ${String(params.name).slice(0, 60)}`);
     }
     default:
