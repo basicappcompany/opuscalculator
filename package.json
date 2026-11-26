@@ -7,7 +7,7 @@
   },
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build && node scripts/run.mjs scripts/verify-dist.ts && node scripts/run.mjs scripts/check-bundle-size.ts && node scripts/run.mjs scripts/check-security.ts",
+    "build": "astro build && node scripts/run.mjs scripts/build-mcp.ts && node scripts/run.mjs scripts/verify-dist.ts && node scripts/run.mjs scripts/check-bundle-size.ts && node scripts/run.mjs scripts/check-security.ts",
     "preview": "astro preview",
     "astro": "astro",
     "typecheck": "astro sync && tsc --noEmit",

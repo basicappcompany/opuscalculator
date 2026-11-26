@@ -2,6 +2,9 @@
 dist/
 # generated types
 .astro/
+# the MCP server bundle and its generated entry (scripts/build-mcp.ts), rebuilt by every npm run build
+.mcp/
+.mcp-src/
 
 # dependencies
 node_modules/

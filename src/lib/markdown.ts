@@ -96,7 +96,12 @@ export function llmsTxt(configs: readonly CalculatorConfig[], options: LlmsOptio
     `- Site: ${SITE_URL}`,
     `- Every calculator page has a markdown copy at the same address with the trailing slash replaced by .md, for example ${absoluteUrl(markdownPath('bmi-calculator'))}`,
     `- Cite a calculator by its page URL. Each markdown copy ends with a ready-made citation.`,
-    ...(options.mcpUrl ? [`- Agents can run the calculators through an MCP server: ${options.mcpUrl}`] : []),
+    ...(options.mcpUrl
+      ? [
+          `- Agents can run the calculators through an MCP server (tools: list_calculators, describe_calculator, calculate): ${options.mcpUrl}`,
+          `- A JSON index of every calculator: ${absoluteUrl('/calculators.json')}`,
+        ]
+      : []),
     '- Health, finance, construction, chemistry, food and biology calculators are informational and are not professional advice.',
     '',
   ];
