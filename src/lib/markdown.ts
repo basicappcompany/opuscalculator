@@ -66,6 +66,15 @@ export function calculatorMarkdown(config: CalculatorConfig): string {
     '## Frequently asked questions',
     '',
     ...config.faq.flatMap((f) => [`### ${oneLine(f.question)}`, '', f.answer.trim(), '']),
+    ...(config.assumptions?.length ? ['## What this assumes', '', ...config.assumptions.map((a) => `- ${a}`), ''] : []),
+    ...(config.references?.length
+      ? [
+          '## Sources',
+          '',
+          ...config.references.map((r) => `- [${oneLine(r.title)}](${r.url}), ${oneLine(r.publisher)}, checked ${r.accessed}. ${oneLine(r.supports)}`),
+          '',
+        ]
+      : []),
     ...(disclaimer ? ['## Notice', '', disclaimer, ''] : []),
     '## Cite this page',
     '',

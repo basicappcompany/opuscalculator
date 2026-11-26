@@ -5,7 +5,9 @@
 import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { aiDiscoveryProblems, calculatorIndexProblems, structuredAnswerProblems } from '../src/lib/ai-discovery-checks';
+import { REFERENCES_PENDING } from '../src/config/references-pending';
 import { checkDist } from '../src/lib/audit';
+import { referenceSectionProblems } from '../src/lib/references';
 import { REQUIRED_FOOTER_PATHS } from '../src/lib/static-pages';
 import { DIST, readPages, readSitemaps, unpublishedPaths } from './dist-reader';
 
@@ -20,6 +22,8 @@ export default function main(): number {
   const markdownSlugs = new Set((existsSync(calcDir) ? readdirSync(calcDir) : []).filter((n) => n.endsWith('.md')).map((n) => n.slice(0, -3)));
   problems.push(...aiDiscoveryProblems(pages, { llms: existsSync(llmsFile) ? readFileSync(llmsFile, 'utf8') : undefined, markdownSlugs }));
   problems.push(...structuredAnswerProblems(pages));
+  // Methodology and references (item 20.12): every published calculator page shows a source, apart from the pending list.
+  problems.push(...referenceSectionProblems(pages, REFERENCES_PENDING));
   // The MCP server (item 20.7): its calculator list is /calculators.json, and its bundle is built by build-mcp.ts.
   const indexFile = join(DIST, 'calculators.json');
   problems.push(...calculatorIndexProblems(pages, existsSync(indexFile) ? readFileSync(indexFile, 'utf8') : undefined));

@@ -167,6 +167,8 @@ async function describeCalculator(ctx: McpContext, args: Record<string, unknown>
     outputs: c.outputs.map((o) => ({ name: o.name, label: o.label, format: o.format })),
     formula: c.formulaDescription,
     workedExample: c.workedExample,
+    assumptions: c.assumptions ?? [],
+    references: (c.references ?? []).map((r) => ({ title: r.title, publisher: r.publisher, url: r.url, accessed: r.accessed, supports: r.supports })),
     notice: disclaimerFor(c.category),
   };
   return text(

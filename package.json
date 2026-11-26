@@ -21,6 +21,7 @@
     "prune": "node scripts/run.mjs scripts/prune.ts",
     "prelaunch": "node scripts/run.mjs scripts/prelaunch.ts",
     "audit:prelaunch": "node scripts/run.mjs scripts/prelaunch-audit.ts",
+    "refs:check": "node scripts/run.mjs scripts/check-references.ts",
     "a11y": "node scripts/a11y.mjs",
     "lighthouse": "node scripts/lighthouse-audit.mjs",
     "e2e": "playwright test tests/e2e",
