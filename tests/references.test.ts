@@ -65,8 +65,9 @@ describe('the quality gate and the page output', () => {
     const app = ld['@graph'][0] as { citation: { name: string; publisher: { name: string } }[] };
     expect(app.citation[0]).toMatchObject({ name: good.title, publisher: { name: good.publisher } });
     expect(calculatorMarkdown(withRefs(bmi, [good]))).toContain(`## Sources\n\n- [${good.title}](${good.url}), ${good.publisher}, checked 2026-11-20.`);
-    expect(JSON.stringify(calculatorJsonLd(bmi, '/calculators/bmi-calculator/', [{ label: 'Home', href: '/' }]))).not.toContain('"citation"');
-    expect(calculatorMarkdown(bmi)).not.toContain('## Sources');
+    const bare = { ...bmi, references: [] };
+    expect(JSON.stringify(calculatorJsonLd(bare, '/calculators/bmi-calculator/', [{ label: 'Home', href: '/' }]))).not.toContain('"citation"');
+    expect(calculatorMarkdown(bare)).not.toContain('## Sources');
   });
 });
 

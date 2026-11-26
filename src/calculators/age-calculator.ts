@@ -66,6 +66,27 @@ const config: CalculatorConfig = {
     { label: 'Born 29 February 2004', inputs: { birthDate: '2004-02-29' } },
     { label: 'Born 31 December 1960', inputs: { birthDate: '1960-12-31' } },
   ],
+  assumptions: [
+    'Dates are calendar dates in the Gregorian calendar, including its leap-year rule, for every year.',
+    'Months and days are counted from the last birthday, borrowing the length of the month before the as-of date when the day count would be negative.',
+    'Only the date counts: time of day and time zones are ignored.',
+  ],
+  references: [
+    {
+      title: 'Leap Year',
+      publisher: 'Hong Kong Observatory',
+      url: 'https://www.weather.gov.hk/en/gts/time/basicterms-leapyear.htm',
+      accessed: '2026-11-26',
+      supports: 'The Gregorian leap-year rule (century years are leap years only when divisible by 400) that decides how many days lie between two dates.',
+    },
+    {
+      title: 'ISO 8601: Date and time format',
+      publisher: 'International Organization for Standardization (ISO)',
+      url: 'https://www.iso.org/iso-8601-date-and-time-format.html',
+      accessed: '2026-11-26',
+      supports: 'Dates are entered and handled as calendar dates in year-month-day order.',
+    },
+  ],
   workedExample:
     'Born 15 June 1990, age on 22 November 2026: years = 2026 − 1990 = 36; months = 11 − 6 = 5; days = 22 − 15 = 7. So 36 years, 5 months and 7 days. Total days = 13,309 and total weeks = 13,309 ÷ 7 = 1,901.29. The next birthday is 15 June 2027.',
   faq: [

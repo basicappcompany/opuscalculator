@@ -59,6 +59,29 @@ const config: CalculatorConfig = {
     { label: 'Higher rate: 7.5%', inputs: { interestRate: 7.5 } },
     { label: 'Smaller down payment: $40,000', inputs: { downPayment: 40000 } },
   ],
+  assumptions: [
+    'A fixed rate and equal monthly payments for the whole term.',
+    'Principal and interest only: taxes, insurance and fees are not included.',
+    'Interest is charged monthly at one twelfth of the annual rate; the payment and each month of interest are rounded to the cent, as a lender bills, and the last payment clears the balance.',
+  ],
+  references: [
+    {
+      title: 'The Basics of Loans (Contemporary Mathematics, section 6.8)',
+      publisher: 'OpenStax, Rice University',
+      url: 'https://openstax.org/books/contemporary-mathematics/pages/6-8-the-basics-of-loans',
+      accessed: '2026-11-26',
+      supports:
+        'How to calculate the payment needed to pay off an installment loan and how an amortization table splits each payment between interest and principal.',
+    },
+    {
+      title: 'Loan Amortization (Principles of Finance 2e, section 8.3)',
+      publisher: 'OpenStax, Rice University',
+      url: 'https://openstax.org/books/principles-finance-2e/pages/8-3-loan-amortization',
+      accessed: '2026-11-26',
+      supports:
+        'The present value of an annuity formula PV = PYMT x [1 - 1/(1 + r)^n] / r that gives the payment on a loan, and how to build an amortization schedule.',
+    },
+  ],
   workedExample:
     'A $200,000 loan at 6% for 30 years: r = 0.06 ÷ 12 = 0.005 and n = 360. (1.005)^360 ≈ 6.022575, so M = 200,000 × 0.005 × 6.022575 ÷ 5.022575 = $1,199.10. Paid month by month with each payment and the monthly interest rounded to the cent, the 360 payments total $431,677.04, which makes the total interest $231,677.04.',
   faq: [
