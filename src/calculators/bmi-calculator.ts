@@ -59,6 +59,28 @@ const config: CalculatorConfig = {
     { label: '70 kg at 160 cm', inputs: { height: 160 } },
     { label: '70 kg at 190 cm', inputs: { height: 190 } },
   ],
+  assumptions: [
+    'Adult categories only (age 20 and over): children and teenagers are judged against growth charts, not these cut-offs.',
+    'BMI is a screening measure. It does not separate muscle from fat and it is not a diagnosis.',
+    'Pounds and inches are converted exactly (1 lb = 0.45359237 kg, 1 in = 2.54 cm).',
+  ],
+  references: [
+    {
+      title: 'Adult BMI Categories',
+      publisher: 'Centers for Disease Control and Prevention (CDC)',
+      url: 'https://www.cdc.gov/bmi/adult-calculator/bmi-categories.html',
+      accessed: '2026-11-26',
+      supports:
+        'BMI as weight in kilograms divided by the square of height in metres, the adult categories (underweight, healthy weight, overweight, obesity) and that BMI is a screening measure.',
+    },
+    {
+      title: 'Malnutrition in women (Nutrition Landscape Information System)',
+      publisher: 'World Health Organization (WHO)',
+      url: 'https://www.who.int/data/nutrition/nlis/info/malnutrition-in-women',
+      accessed: '2026-11-26',
+      supports: 'The WHO cut-offs used here: below 18.5 underweight, 18.5 to 24.9 normal weight, 25.0 and above overweight, 30.0 and above obesity.',
+    },
+  ],
   workedExample:
     'A person 175 cm tall weighing 70 kg: height = 1.75 m, so height² = 3.0625. BMI = 70 ÷ 3.0625 = 22.857, shown as 22.9: healthy weight. At 1.75 m the healthy range is 18.5 × 3.0625 = 56.7 kg up to 24.9 × 3.0625 = 76.3 kg.',
   faq: [

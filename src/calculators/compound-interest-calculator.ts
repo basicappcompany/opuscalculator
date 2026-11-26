@@ -66,6 +66,26 @@ const config: CalculatorConfig = {
     { label: 'Longer: 20 years', inputs: { years: 20 } },
     { label: 'Longer still: 30 years', inputs: { years: 30 } },
   ],
+  assumptions: [
+    'The rate stays the same for the whole term, and interest is added n times a year at regular intervals.',
+    'No deposits, withdrawals, fees or taxes are included.',
+  ],
+  references: [
+    {
+      title: 'How does compound interest work?',
+      publisher: 'Consumer Financial Protection Bureau (CFPB)',
+      url: 'https://www.consumerfinance.gov/ask-cfpb/what-is-compound-interest-en-1683/',
+      accessed: '2026-11-26',
+      supports: 'What compound interest is: interest earned on the money saved and on the interest already earned.',
+    },
+    {
+      title: 'Compound Interest (Contemporary Mathematics, section 6.4)',
+      publisher: 'OpenStax, Rice University',
+      url: 'https://openstax.org/books/contemporary-mathematics/pages/6-4-compound-interest',
+      accessed: '2026-11-26',
+      supports: 'Computing future value with compound interest, A = P(1 + r/n)^(nt), and the effective annual yield.',
+    },
+  ],
   workedExample:
     '$10,000 at 5% for 10 years, compounded annually: A = 10,000 × (1.05)^10 = $16,288.95. Compounded quarterly: 10,000 × (1.0125)^40 = $16,436.19. Compounded monthly: 10,000 × (1.0041667)^120 = $16,470.09. More frequent compounding adds a little each time.',
   faq: [

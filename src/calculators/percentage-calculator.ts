@@ -65,6 +65,19 @@ const config: CalculatorConfig = {
     String.raw`Percentage change measures the change $B - A$ against where you started, $|A|$, so it is $\frac{B-A}{|A|}\times 100$. The absolute value keeps an increase positive even when $A$ is negative.`,
     String.raw`Division by zero has no value, so $B = 0$ in the third formula and $A = 0$ in the fourth are reported as undefined rather than as a number.`,
   ],
+  assumptions: [
+    'Percentage change is measured against the first value (A), using its absolute value, so the sign shows an increase or a decrease.',
+    'Division by zero is undefined, so those cases show a message instead of a number.',
+  ],
+  references: [
+    {
+      title: 'Solve General Applications of Percent (Prealgebra, section 6.2)',
+      publisher: 'OpenStax, Rice University',
+      url: 'https://openstax.org/books/prealgebra/pages/6-2-solve-general-applications-of-percent',
+      accessed: '2026-11-26',
+      supports: 'Translating "what is A percent of B" and "A is what percent of B" into equations, and finding percent increase and percent decrease.',
+    },
+  ],
   workedExample:
     '15% of 200: 15 ÷ 100 = 0.15, and 0.15 × 200 = 30. 30 is what percent of 200: 30 ÷ 200 = 0.15, and 0.15 × 100 = 15%. Percentage change from 80 to 100: (100 − 80) ÷ 80 = 0.25, so a 25% increase. Going back from 100 to 80 is (80 − 100) ÷ 100 = −20%, which shows why the same gap is a different percentage.',
   faq: [
