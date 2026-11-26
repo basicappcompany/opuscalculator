@@ -102,7 +102,7 @@ describe('calculate', () => {
 
   // Found by this very test: these two physics calculators prefill a value their own validator rejects (5.972e24 has no
   // plain-decimal form the input accepts, and 9.109e-31 is below the 0.000001 minimum), so on the page any edit shows
-  // "Enter a number" and over MCP the defaults cannot be used. Tracked as a defect (docs/status.html 5.14). When one is fixed
+  // "Enter a number" and over MCP the defaults cannot be used. Tracked as a defect (docs/status.html 5.16). When one is fixed
   // this test fails until it is removed from the list, so the list cannot go stale.
   const KNOWN_DEFAULT_INPUT_DEFECTS = ['de-broglie-wavelength-calculator', 'gravitational-force-calculator']; // sorted
 
