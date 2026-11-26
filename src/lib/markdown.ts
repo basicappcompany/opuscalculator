@@ -100,7 +100,7 @@ export function llmsTxt(configs: readonly CalculatorConfig[], options: LlmsOptio
   const lines: string[] = [
     `# ${SITE_NAME}`,
     '',
-    `> Free online calculators for everyday questions: finance, health, math, conversions and more. Every calculator shows its default result in plain HTML, uses exact decimal arithmetic, and explains its method with a worked example.`,
+    `> Exact, free calculators for people and AI agents: finance, health, math, conversions and more, readable as web pages and as markdown. Every calculator shows its default result in plain HTML, uses exact decimal arithmetic, and explains its method with a worked example.`,
     '',
     `- Site: ${SITE_URL}`,
     `- Every calculator page has a markdown copy at the same address with the trailing slash replaced by .md, for example ${absoluteUrl(markdownPath('bmi-calculator'))}`,

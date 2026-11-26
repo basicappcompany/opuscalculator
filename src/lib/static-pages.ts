@@ -14,9 +14,17 @@ export interface StaticPage {
 
 export const STATIC_PAGES: readonly StaticPage[] = [
   {
+    path: '/agents/',
+    label: 'For AI agents',
+    title: 'Opus Calculator for AI agents: MCP server, llms.txt and JSON index',
+    description:
+      'Connect an AI assistant or agent to Opus Calculator: a read-only MCP server that runs the same exact calculators, plus llms.txt, markdown copies and a JSON index.',
+    footer: true,
+  },
+  {
     path: '/about/',
     label: 'About',
-    title: 'About Opus Calculator: free calculators for everyday questions',
+    title: 'About Opus Calculator: exact calculators for people and AI agents',
     description: 'Who runs Opus Calculator, why it exists, what the site promises, and how each calculator is built and tested.',
     footer: true,
   },
