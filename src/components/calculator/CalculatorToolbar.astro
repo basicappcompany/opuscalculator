@@ -1,12 +1,13 @@
 ---
-// The toolbar every calculator page shows (plan/PROMPT 19): Share, Cite and Embed open our own dialogs (a bottom sheet on a
-// phone, a centred card on a desktop), and a plain link adds the site as a preferred source on Google. "Share result" and
-// "Clear all changes" live in the widget because they need its inputs; "Share result" opens the same Share dialog.
-// The text of every dialog is in the page HTML (citations, embed code, share links), so nothing here depends on a script to
-// be readable by a person or a crawler; the script only opens the dialogs and copies. Nothing is stored, and nothing is
-// loaded from another host until a visitor clicks a share link.
+// The actions for a calculator page: Share, Cite, Embed and Use with AI. A compact row that sits in the page header (icons only on a
+// phone, so the tool stays on the first screen), each opening our own dialog: a bottom sheet on a phone, a centred card on a
+// desktop. "Share result" and "Copy" live on the result card in the widget (they belong with the answer); "Share result" opens the
+// same Share dialog. Everything the dialogs say is in the page HTML, so nothing here depends on a script to be readable by a
+// person, a crawler or an agent; the script only opens the dialogs, copies, and keeps the AI prompt in step with the inputs.
+// Nothing is stored, and nothing is loaded from another host until a visitor clicks a link in the Share dialog.
 import type { CalculatorConfig } from '../../lib/types';
-import { citationFormats, embedPath, embedSnippet, preferredSourceUrl, shareLinks } from '../../lib/toolbar';
+import { MCP_SETUP, MCP_URL, aiPrompt, citationFormats, embedPath, embedSnippet, preferredSourceUrl, shareLinks } from '../../lib/toolbar';
+import { markdownPath } from '../../lib/markdown';
 
 interface Props {
   config: CalculatorConfig;
@@ -14,24 +15,27 @@ interface Props {
 const { config } = Astro.props;
 const url = new URL(`/calculators/${config.slug}/`, Astro.site).href;
 const embedUrl = new URL(embedPath(config.slug), Astro.site).href;
+const markdownUrl = new URL(markdownPath(config.slug), Astro.site).href;
 const citations = citationFormats(config.h1, url, config.lastUpdated, config.slug);
 const embedTitle = `${config.h1} (Opus Calculator)`;
 const snippet = embedSnippet(embedUrl, embedTitle);
 const links = shareLinks(url, config.h1);
+const prompt = aiPrompt(config.h1, config.slug, url);
 
 const button =
-  'inline-flex h-9 cursor-pointer items-center justify-center gap-2 rounded-md border border-border-strong bg-card px-3 text-sm font-medium text-fg transition-colors hover:bg-accent-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent';
+  'inline-flex h-9 cursor-pointer items-center justify-center gap-2 rounded-md border border-border-strong bg-card px-2.5 text-sm font-medium text-fg transition-colors hover:bg-accent-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent sm:px-3';
+const action =
+  'inline-flex h-10 shrink-0 cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-md border border-border-strong bg-card px-3 text-sm font-medium text-fg transition-colors hover:bg-accent-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent';
 const primary =
   'inline-flex h-10 shrink-0 cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-md bg-accent px-4 text-sm font-medium text-accent-fg transition-colors hover:bg-accent-strong focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent';
 const ghost =
   'inline-flex size-9 cursor-pointer items-center justify-center rounded-md text-muted transition-colors hover:bg-accent-soft hover:text-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent';
-// A modal on a desktop, a sheet that rises from the bottom edge on a phone. The wrapper inside has the padding, so a click on
-// the dim area (the dialog itself) is the only click that closes it.
 const dialog =
   'opus-dialog m-auto w-full max-w-lg overflow-hidden rounded-lg border border-border bg-card p-0 text-fg shadow-md backdrop:bg-fg/40 backdrop:backdrop-blur-sm max-sm:mb-0 max-sm:max-w-none max-sm:rounded-b-none';
 const field = 'block w-full rounded-md border border-border-strong bg-bg px-3 py-2 text-sm text-fg';
 const tab =
   'cursor-pointer rounded-md px-3 py-1.5 text-sm font-medium text-muted transition-colors hover:bg-accent-soft hover:text-fg aria-selected:bg-accent aria-selected:text-accent-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent';
+const label = 'mb-1 block text-sm font-medium';
 const icon = {
   width: '16',
   height: '16',
@@ -45,7 +49,7 @@ const icon = {
 } as const;
 ---
 
-<section aria-label="Share, cite and embed this calculator" data-toolbar-root class="mb-5 flex flex-wrap items-start gap-2">
+<div data-toolbar-root role="group" aria-label="Share, cite, embed or use with AI" class="flex shrink-0 flex-wrap items-center gap-2">
   <button type="button" class={button} data-toolbar="share" data-open="share" aria-haspopup="dialog">
     <svg {...icon}>
       <circle cx="18" cy="5" r="3"></circle>
@@ -54,7 +58,7 @@ const icon = {
       <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
       <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
     </svg>
-    Share
+    <span class="max-sm:sr-only">Share</span>
   </button>
   <button type="button" class={button} data-toolbar="cite" data-open="cite" aria-haspopup="dialog">
     <svg {...icon}>
@@ -64,21 +68,22 @@ const icon = {
       <path d="M16 17H8"></path>
       <path d="M10 9H8"></path>
     </svg>
-    Cite
+    <span class="max-sm:sr-only">Cite</span>
   </button>
   <button type="button" class={button} data-toolbar="embed" data-open="embed" aria-haspopup="dialog">
     <svg {...icon}>
       <polyline points="16 18 22 12 16 6"></polyline>
       <polyline points="8 6 2 12 8 18"></polyline>
     </svg>
-    Embed
+    <span class="max-sm:sr-only">Embed</span>
   </button>
-  <a class={button} data-toolbar="preferred" href={preferredSourceUrl()} target="_blank" rel="noopener noreferrer">
+  <button type="button" class={`${button} border-accent text-accent-strong`} data-toolbar="ai" data-open="ai" aria-haspopup="dialog">
     <svg {...icon}>
-      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+      <path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"></path>
+      <path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"></path>
     </svg>
-    Add as a preferred source on Google<span class="sr-only"> (opens in a new tab)</span>
-  </a>
+    <span>Use with AI</span>
+  </button>
 
   <!-- Share -->
   <dialog class={dialog} data-dialog="share" aria-labelledby="share-title" data-url={url} data-title={config.h1}>
@@ -100,7 +105,7 @@ const icon = {
     </div>
     <div class="space-y-4 px-5 py-4">
       <div>
-        <label for={`share-url-${config.slug}`} class="mb-1 block text-sm font-medium">
+        <label for={`share-url-${config.slug}`} class={label}>
           Share link
         </label>
         <div class="flex gap-2">
@@ -111,11 +116,11 @@ const icon = {
         </div>
       </div>
       <div hidden data-share-summary-wrap>
-        <label for={`share-summary-${config.slug}`} class="mb-1 block text-sm font-medium">
+        <label for={`share-summary-${config.slug}`} class={label}>
           Your result
         </label>
         <textarea id={`share-summary-${config.slug}`} readonly rows="3" class={field} data-share-summary></textarea>
-        <button type="button" class={`${button} mt-2`} data-copy-from={`share-summary-${config.slug}`}>
+        <button type="button" class={`${action} mt-2`} data-copy-from={`share-summary-${config.slug}`}>
           <span data-label>Copy result text</span>
         </button>
       </div>
@@ -124,7 +129,7 @@ const icon = {
         <ul class="grid grid-cols-2 gap-2 sm:grid-cols-3" data-share-links>
           {links.map((l) => (
             <li>
-              <a href={l.href} target="_blank" rel="noopener noreferrer" data-network={l.id} class={`${button} w-full`}>
+              <a href={l.href} target="_blank" rel="noopener noreferrer" data-network={l.id} class={`${action} w-full`}>
                 {l.label}
                 <span class="sr-only"> (opens in a new tab)</span>
               </a>
@@ -132,10 +137,22 @@ const icon = {
           ))}
         </ul>
       </div>
-      <button type="button" class={`${button} w-full`} data-native-share hidden>
+      <button type="button" class={`${action} w-full`} data-native-share hidden>
         More sharing options on this device
       </button>
       <p class="text-xs text-muted">These are plain links: nothing is sent to those sites until you choose one.</p>
+      <p class="border-t border-border pt-3 text-sm">
+        Find this useful?
+        <a
+          class="font-medium text-accent-strong underline underline-offset-2"
+          data-toolbar="preferred"
+          href={preferredSourceUrl()}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Add Opus Calculator as a preferred source on Google<span class="sr-only"> (opens in a new tab)</span>
+        </a>
+      </p>
     </div>
     <p role="status" aria-live="polite" class="sr-only" data-dialog-status></p>
   </dialog>
@@ -210,7 +227,7 @@ const icon = {
     <div class="space-y-4 px-5 py-4">
       <div class="grid grid-cols-2 gap-3">
         <div>
-          <label for={`embed-width-${config.slug}`} class="mb-1 block text-sm font-medium">
+          <label for={`embed-width-${config.slug}`} class={label}>
             Embed width
           </label>
           <select id={`embed-width-${config.slug}`} class={field} data-embed-width>
@@ -221,7 +238,7 @@ const icon = {
           </select>
         </div>
         <div>
-          <label for={`embed-height-${config.slug}`} class="mb-1 block text-sm font-medium">
+          <label for={`embed-height-${config.slug}`} class={label}>
             Embed height
           </label>
           <select id={`embed-height-${config.slug}`} class={field} data-embed-height>
@@ -235,7 +252,7 @@ const icon = {
         </div>
       </div>
       <div>
-        <label for={`embed-code-${config.slug}`} class="mb-1 block text-sm font-medium">
+        <label for={`embed-code-${config.slug}`} class={label}>
           Paste this on your page
         </label>
         <textarea id={`embed-code-${config.slug}`} readonly rows="4" class={`${field} font-mono`} data-embed-code>{snippet}</textarea>
@@ -244,17 +261,105 @@ const icon = {
         <button type="button" class={primary} data-copy-from={`embed-code-${config.slug}`}>
           <span data-label>Copy embed code</span>
         </button>
-        <a href={embedUrl} target="_blank" rel="noopener" class={button}>
+        <a href={embedUrl} target="_blank" rel="noopener" class={action}>
           Preview the embedded copy<span class="sr-only"> (opens in a new tab)</span>
         </a>
       </div>
     </div>
     <p role="status" aria-live="polite" class="sr-only" data-dialog-status></p>
   </dialog>
-</section>
+
+  <!-- Use with AI -->
+  <dialog class={`${dialog} sm:max-w-2xl`} data-dialog="ai" aria-labelledby="ai-title" data-slug={config.slug} data-title={config.h1} data-page-url={url}>
+    <div class="flex items-start justify-between gap-3 border-b border-border px-5 py-4">
+      <div>
+        <h2 id="ai-title" class="text-lg font-bold">
+          Use this calculator with AI
+        </h2>
+        <p class="text-sm text-muted">An assistant connected to our MCP server runs the same exact calculation as this page and cites it.</p>
+      </div>
+      <button type="button" class={ghost} data-close aria-label="Close">
+        <svg {...icon}>
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+    <div class="max-h-[70vh] space-y-5 overflow-y-auto px-5 py-4">
+      <div>
+        <label for={`ai-prompt-${config.slug}`} class={label}>
+          1. Ask your assistant
+        </label>
+        <textarea id={`ai-prompt-${config.slug}`} readonly rows="4" class={field} data-ai-prompt>{prompt}</textarea>
+        <div class="mt-2 flex flex-wrap items-center gap-2">
+          <button type="button" class={primary} data-copy-from={`ai-prompt-${config.slug}`}>
+            <span data-label>Copy prompt</span>
+          </button>
+          <p class="text-xs text-muted" data-ai-note>
+            This prompt uses the calculator's default numbers. Change the inputs and it follows.
+          </p>
+        </div>
+      </div>
+      <div>
+        <p class={label}>2. Connect once</p>
+        <p class="mb-2 text-sm text-muted">
+          The server is read-only, needs no account and stores nothing. Any client that supports remote MCP servers over HTTP can use it.
+        </p>
+        <label for={`ai-url-${config.slug}`} class="sr-only">
+          MCP server address
+        </label>
+        <div class="flex gap-2">
+          <input id={`ai-url-${config.slug}`} readonly value={MCP_URL} class={`${field} font-mono`} />
+          <button type="button" class={action} data-copy-from={`ai-url-${config.slug}`}>
+            <span data-label>Copy address</span>
+          </button>
+        </div>
+        <label for={`ai-cmd-${config.slug}`} class="mt-3 block text-sm text-muted">
+          Claude Code, one command
+        </label>
+        <div class="mt-1 flex gap-2">
+          <input id={`ai-cmd-${config.slug}`} readonly value={MCP_SETUP.claudeCode} class={`${field} font-mono`} />
+          <button type="button" class={action} data-copy-from={`ai-cmd-${config.slug}`}>
+            <span data-label>Copy</span>
+          </button>
+        </div>
+        <label for={`ai-json-${config.slug}`} class="mt-3 block text-sm text-muted">
+          Clients that read an mcpServers file (key names vary by client; the address is what matters)
+        </label>
+        <textarea id={`ai-json-${config.slug}`} readonly rows="7" class={`${field} mt-1 font-mono`}>{MCP_SETUP.json}</textarea>
+        <button type="button" class={`${action} mt-2`} data-copy-from={`ai-json-${config.slug}`}>
+          <span data-label>Copy config</span>
+        </button>
+      </div>
+      <div>
+        <p class={label}>3. Or give an agent this page in a machine-readable form</p>
+        <ul class="list-disc space-y-1 pl-6 text-sm">
+          <li>
+            <a class="font-medium text-accent-strong underline underline-offset-2" href={markdownUrl}>
+              Markdown copy of this calculator
+            </a>
+            : inputs, defaults, result, method, FAQ and a citation.
+          </li>
+          <li>
+            <a class="font-medium text-accent-strong underline underline-offset-2" href="/calculators.json">
+              Index of every calculator (JSON)
+            </a>
+          </li>
+          <li>
+            <a class="font-medium text-accent-strong underline underline-offset-2" href="/llms.txt">
+              llms.txt
+            </a>
+            : what the site is and where everything is.
+          </li>
+        </ul>
+      </div>
+    </div>
+    <p role="status" aria-live="polite" class="sr-only" data-dialog-status></p>
+  </dialog>
+</div>
 
 <script>
-  import { embedSnippet, shareLinks } from '../../lib/toolbar';
+  import { aiPrompt, changedInputs, embedSnippet, shareLinks } from '../../lib/toolbar';
 
   const root = document.querySelector<HTMLElement>('[data-toolbar-root]');
   const dialogs = new Map<string, HTMLDialogElement>();
@@ -401,5 +506,28 @@ const icon = {
     };
     widthSel?.addEventListener('change', refresh);
     heightSel?.addEventListener('change', refresh);
+  }
+
+  // ---- Use with AI: the prompt carries the visitor's current numbers ----
+  const ai = dialogs.get('ai');
+  if (ai) {
+    const box = ai.querySelector<HTMLTextAreaElement>('[data-ai-prompt]');
+    const note = ai.querySelector<HTMLElement>('[data-ai-note]');
+    let latest: { values: Record<string, string>; defaults: Record<string, string> } | null = null;
+    // The widget announces its inputs (opus:inputs) every time they change.
+    window.addEventListener('opus:inputs', (event) => {
+      const detail = (event as CustomEvent<{ values: Record<string, string>; defaults: Record<string, string> }>).detail;
+      if (detail?.values) latest = detail;
+    });
+    const refresh = () => {
+      if (!box) return;
+      const changed = latest ? changedInputs(latest.values, latest.defaults) : {};
+      box.value = aiPrompt(ai.dataset.title ?? '', ai.dataset.slug ?? '', ai.dataset.pageUrl ?? location.href, changed);
+      if (note)
+        note.textContent = Object.keys(changed).length
+          ? 'This prompt carries the numbers you entered.'
+          : "This prompt uses the calculator's default numbers. Change the inputs and it follows.";
+    };
+    root?.querySelector<HTMLElement>('[data-open="ai"]')?.addEventListener('click', refresh);
   }
 </script>

@@ -87,7 +87,7 @@ export interface SitemapFileData {
 }
 
 /** The controls every calculator page carries (plan/PROMPT 19). "Helpful? Yes / No" joins when the analytics tool is chosen (12.9). */
-export const TOOLBAR_HOOKS = ['share', 'cite', 'embed', 'preferred', 'share-result', 'reset'] as const;
+export const TOOLBAR_HOOKS = ['share', 'cite', 'embed', 'ai', 'preferred', 'share-result', 'reset'] as const;
 
 const calculatorSlug = (path: string): string | null => {
   if (!path.startsWith('/calculators/') || !path.endsWith('/')) return null;

@@ -102,6 +102,28 @@ export function shareLinks(url: string, title: string, text = ''): ShareLink[] {
   ];
 }
 
+/** The MCP server's address (item 20.7). */
+export const MCP_URL = `${SITE_URL}/mcp`;
+
+/** The inputs that differ from the defaults: what a prompt for an assistant needs to carry. */
+export function changedInputs(values: Record<string, string>, defaults: Record<string, string>): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const [k, v] of Object.entries(values)) if (v !== (defaults[k] ?? '') && v.length <= MAX_SHARE_VALUE_LENGTH) out[k] = v;
+  return out;
+}
+
+/** A ready-to-paste instruction for an AI assistant that has the Opus Calculator MCP server connected. */
+export function aiPrompt(title: string, slug: string, pageUrl: string, changed: Record<string, string> = {}): string {
+  const inputs = Object.keys(changed).length ? ` and inputs ${JSON.stringify(changed)}` : ' (the calculator defaults)';
+  return `Use the Opus Calculator MCP server (${MCP_URL}). Call the calculate tool with slug "${slug}"${inputs} to run the ${title}. Give me the result and cite ${pageUrl}.`;
+}
+
+/** Setup snippets. The address is what matters; the key names vary by client. */
+export const MCP_SETUP = {
+  claudeCode: `claude mcp add --transport http opus-calculator ${MCP_URL}`,
+  json: JSON.stringify({ mcpServers: { 'opus-calculator': { type: 'http', url: MCP_URL } } }, null, 2),
+} as const;
+
 /** Longest value a shared-result link may carry for one input. Calculator inputs are short; anything longer is not ours. */
 export const MAX_SHARE_VALUE_LENGTH = 40;
 

@@ -11,6 +11,15 @@ export function splitIntro(intro: string, count = 2): { lede: string; rest: stri
   return { lede: sentences.slice(0, count).join(' '), rest: sentences.slice(count).join(' ') };
 }
 
+/**
+ * The one sentence that goes under the title (the answer, in a sentence), and everything else of the intro for the "About" section
+ * below the tool. Keeps the first screen for the calculator, on a phone above all. Nothing is dropped: the rest is still on the page.
+ */
+export function leadIntro(intro: string): { lead: string; more: string } {
+  const { lede, rest } = splitIntro(intro, 1);
+  return { lead: lede, more: rest };
+}
+
 const escapeHtml = (s: string): string => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
 /** KaTeX to an HTML string at build time. A bad formula renders as its source text, never throws. */

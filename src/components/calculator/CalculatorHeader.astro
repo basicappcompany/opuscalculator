@@ -1,0 +1,26 @@
+---
+// The top of every calculator page: the title, ONE sentence that gives the answer, and the actions (share, cite, embed, use with
+// AI) beside it. Compact on purpose, so the calculator itself is on the first screen on a phone (UX audit, item 20.13). The rest
+// of the intro is not dropped: it is the "About" section below the tool.
+import type { CalculatorConfig } from '../../lib/types';
+import { leadIntro } from '../../lib/text';
+import CalculatorToolbar from './CalculatorToolbar.astro';
+
+interface Props {
+  config: CalculatorConfig;
+  /** Centre the title (the compact layout). */
+  centered?: boolean;
+}
+const { config, centered = false } = Astro.props;
+const { lead } = leadIntro(config.intro);
+---
+
+<header class={`mb-5 flex flex-col gap-3 ${centered ? 'items-center text-center' : 'sm:flex-row sm:items-start sm:justify-between sm:gap-6'}`}>
+  <div class={centered ? 'max-w-2xl' : 'min-w-0 max-w-3xl'}>
+    <h1 class="text-3xl font-bold tracking-tight sm:text-4xl">{config.h1}</h1>
+    <p class="mt-2 text-base leading-relaxed text-muted sm:text-lg" data-lede>
+      {lead}
+    </p>
+  </div>
+  <CalculatorToolbar config={config} />
+</header>

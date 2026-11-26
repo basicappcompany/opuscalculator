@@ -107,6 +107,13 @@ export default function CalculatorWidget({ spec, variant = 'stack' }: Calculator
     [spec.slug],
   );
 
+  // The page's "Use with AI" dialog builds its prompt from these, so the assistant gets the numbers the visitor typed.
+  useEffect(() => {
+    const defaults = Object.fromEntries(shareKeys.map((k) => [k, defaultOf(k)]));
+    window.dispatchEvent(new CustomEvent('opus:inputs', { detail: { values: { ...defaults, ...values }, defaults } }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- announce when the values change
+  }, [values]);
+
   // A shared-result link (?homePrice=300000): fill the inputs and recompute. After hydration only, so the server HTML and the
   // first paint stay the default state (CLAUDE.md rule 2). The values go through the same validators as typed input.
   useEffect(() => {
@@ -440,36 +447,28 @@ export default function CalculatorWidget({ spec, variant = 'stack' }: Calculator
           </div>
         )}
 
-        <div className="flex flex-wrap gap-2">
-          {/* Greyed out until something changed. aria-disabled (not disabled) keeps it focusable, and the reason is read out. */}
-          <Button
-            variant="outline"
+        {/* A quiet text button under the inputs. Greyed out until something changed; aria-disabled (not disabled) keeps it focusable and the reason is read out. */}
+        <div>
+          <button
+            type="button"
             data-toolbar="reset"
             aria-disabled={changed ? undefined : true}
             aria-describedby={changed ? undefined : id('reset-hint')}
-            className={cn(!changed && 'cursor-not-allowed opacity-50')}
+            className={cn(
+              'inline-flex items-center gap-1.5 rounded-md px-1 py-1 text-sm font-medium text-muted underline-offset-2 transition-colors hover:text-fg hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent',
+              !changed && 'cursor-not-allowed opacity-50 hover:no-underline',
+            )}
             onClick={() => {
               if (changed) reset();
             }}
           >
-            <RotateCcw size={16} aria-hidden="true" /> Clear all changes
-          </Button>
+            <RotateCcw size={14} aria-hidden="true" /> Clear all changes
+          </button>
           {!changed && (
             <span id={id('reset-hint')} className="sr-only">
               Nothing has changed yet.
             </span>
           )}
-          <Button variant="outline" onClick={() => void copy()}>
-            {copied ? <Check size={16} aria-hidden="true" /> : <Copy size={16} aria-hidden="true" />}
-            {copied ? 'Copied' : 'Copy results'}
-          </Button>
-          <Button variant="outline" data-toolbar="share-result" onClick={() => void shareResult()}>
-            {linkCopied ? <Check size={16} aria-hidden="true" /> : <Link2 size={16} aria-hidden="true" />}
-            {linkCopied ? 'Link copied' : 'Share result'}
-          </Button>
-          <span role="status" className="sr-only">
-            {linkCopied ? 'Link to this result copied' : ''}
-          </span>
         </div>
       </form>
 
@@ -498,6 +497,20 @@ export default function CalculatorWidget({ spec, variant = 'stack' }: Calculator
             </div>
           ))}
         </dl>
+        {/* The actions belong with the answer. Dark glass buttons keep white text readable on every result gradient. */}
+        <div className={cn('mt-5 flex flex-wrap gap-2', compact && 'justify-center')}>
+          <button type="button" className="result-btn" aria-label="Copy results" onClick={() => void copy()}>
+            {copied ? <Check size={16} aria-hidden="true" /> : <Copy size={16} aria-hidden="true" />}
+            {copied ? 'Copied' : 'Copy'}
+          </button>
+          <button type="button" className="result-btn" data-toolbar="share-result" onClick={() => void shareResult()}>
+            {linkCopied ? <Check size={16} aria-hidden="true" /> : <Link2 size={16} aria-hidden="true" />}
+            {linkCopied ? 'Link copied' : 'Share result'}
+          </button>
+          <span role="status" className="sr-only">
+            {linkCopied ? 'Link to this result copied' : ''}
+          </span>
+        </div>
       </div>
     </section>
   );
