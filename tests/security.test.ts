@@ -4,7 +4,17 @@ import bmi from '../src/calculators/bmi-calculator';
 import { hasAccessToken, isAdminPath, onRequest } from '../functions/_middleware';
 import { validateForIndexing } from '../src/lib/quality-gate';
 import { registry } from '../src/lib/registry';
-import { KNOWN_HOSTS, REQUIRED_HEADERS, checkHeaders, checkPublicVars, externalHosts, findLeaks, parseCsp, parseHeaders } from '../scripts/check-security';
+import {
+  KNOWN_HOSTS,
+  REQUIRED_HEADERS,
+  checkHeaders,
+  checkPublicVars,
+  externalHosts,
+  findLeaks,
+  inlinedFontProblems,
+  parseCsp,
+  parseHeaders,
+} from '../scripts/check-security';
 
 const headersFile = readFileSync('public/_headers', 'utf8');
 
@@ -44,6 +54,15 @@ describe('response headers (Prompt 15, step 1)', () => {
     expect(checkHeaders(headersFile.replace("; script-src 'self'", "; script-src 'self' https://evil.example")).join()).toMatch(/evil\.example/);
     expect(checkHeaders(headersFile.replace("script-src 'self'", 'script-src *')).join()).toMatch(/any host/);
     expect(Object.keys(REQUIRED_HEADERS)).toHaveLength(6);
+  });
+
+  it('allows fonts inlined as data: URLs, and the build fails if it would not', () => {
+    const csp = parseCsp(parseHeaders(headersFile)['Content-Security-Policy'] ?? '');
+    expect(csp['font-src']).toContain('data:');
+    const css = '@font-face{src:url(data:font/woff2;base64,d09GMg==) format("woff2")}';
+    expect(inlinedFontProblems(css, csp)).toEqual([]);
+    expect(inlinedFontProblems(css, { ...csp, 'font-src': ["'self'"] }).join()).toMatch(/font-src does not allow data:/);
+    expect(inlinedFontProblems('a{color:red}', { ...csp, 'font-src': ["'self'"] })).toEqual([]);
   });
 
   it('immutable caching is only on hashed build assets', () => {

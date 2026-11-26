@@ -74,6 +74,17 @@ export function checkHeaders(text: string): string[] {
   return problems;
 }
 
+/**
+ * The build inlines small font files into the CSS as data: URLs (KaTeX's fonts, for one). A CSP with font-src 'self'
+ * blocks them: the browser logs an error and the page falls back to another font. Found by Lighthouse on the live
+ * site on 27 Nov (best practices 93 on the percentage calculator).
+ */
+export function inlinedFontProblems(css: string, csp: Record<string, string[]>): string[] {
+  if (!/url\(\s*["']?data:font\//i.test(css)) return [];
+  const sources = csp['font-src'] ?? csp['default-src'] ?? [];
+  return sources.includes('data:') ? [] : ['built CSS inlines fonts as data: URLs, but the CSP font-src does not allow data:'];
+}
+
 /** Hosts that built pages load scripts or stylesheets from. */
 export function externalHosts(html: string): { host: string; tag: string }[] {
   const out: { host: string; tag: string }[] = [];
@@ -139,6 +150,13 @@ export default function main(): number {
       if (!allowed.includes(host)) problems.push(`${file.replace(DIST, '')} loads a ${tag} from ${host}, which the CSP does not allow`);
     }
   }
+
+  // 2b. fonts inlined as data: URLs need font-src data:
+  const css = files
+    .filter((f) => f.endsWith('.css'))
+    .map((f) => readFileSync(f, 'utf8'))
+    .join(' ');
+  problems.push(...inlinedFontProblems(css, csp));
 
   // 3. leaks
   const text = files.filter((f) => TEXT.test(f)).map((path) => ({ path: path.replace(DIST, ''), text: readFileSync(path, 'utf8') }));
