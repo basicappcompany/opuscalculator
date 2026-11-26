@@ -1,0 +1,45 @@
+---
+import type { ScenarioTable } from '../../lib/scenarios';
+interface Props {
+  table: ScenarioTable;
+  heading: string;
+  /** Visible lead-in sentence under the heading. */
+  intro?: string;
+}
+const { table, heading, intro } = Astro.props;
+---
+
+<section class="mt-10" aria-labelledby="scenario-heading">
+  <h2 id="scenario-heading" class="mb-2 text-xl font-bold">
+    {heading}
+  </h2>
+  {intro && <p class="mb-3 text-muted">{intro}</p>}
+  <div tabindex="0" role="region" aria-label={`${heading}, scrollable table`} class="overflow-x-auto rounded-lg border border-border bg-card">
+    <table class="w-full min-w-max text-left text-sm">
+      <thead class="bg-accent-soft text-fg">
+        <tr>
+          <th scope="col" class="p-3 font-semibold">
+            Scenario
+          </th>
+          {table.columns.map((c) => (
+            <th scope="col" class="p-3 font-semibold">
+              {c.label}
+            </th>
+          ))}
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-border">
+        {table.rows.map((r) => (
+          <tr>
+            <th scope="row" class="p-3 font-medium">
+              {r.label}
+            </th>
+            {table.columns.map((c) => (
+              <td class="p-3">{r.results[c.name]}</td>
+            ))}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+</section>

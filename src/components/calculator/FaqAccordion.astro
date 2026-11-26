@@ -1,0 +1,21 @@
+---
+import type { FaqEntry } from '../../lib/types';
+interface Props {
+  faq: FaqEntry[];
+}
+const { faq } = Astro.props;
+---
+
+<section aria-labelledby="faq-heading" class="mt-10">
+  <h2 id="faq-heading" class="mb-3 text-xl font-bold">
+    Frequently asked questions
+  </h2>
+  <div class="divide-y divide-border rounded-lg border border-border bg-card">
+    {faq.map((f) => (
+      <details class="group p-4">
+        <summary class="cursor-pointer font-medium marker:text-accent">{f.question}</summary>
+        <p class="mt-2 leading-relaxed text-muted">{f.answer}</p>
+      </details>
+    ))}
+  </div>
+</section>

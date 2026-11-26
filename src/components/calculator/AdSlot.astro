@@ -1,0 +1,54 @@
+---
+// The one ad unit per page (CLAUDE.md). It sits after the calculator content and never above the fold.
+// The box reserves its height so nothing shifts when an ad arrives. No ad network is chosen yet, so
+// the loader only does anything when PUBLIC_AD_SCRIPT_URL is set; until then the slot stays an empty placeholder.
+const adScriptUrl = (import.meta.env.PUBLIC_AD_SCRIPT_URL as string | undefined) ?? '';
+---
+
+<aside
+  aria-label="Advertisement"
+  data-ad-slot
+  data-ad-src={adScriptUrl}
+  class="my-8 flex min-h-[var(--size-ad-slot)] items-center justify-center rounded-lg border border-dashed border-border bg-card text-xs uppercase tracking-wide text-muted"
+>
+  Advertisement
+</aside>
+
+<script is:inline>
+  // Deferred load: wait for the page to finish loading (the calculator island is hydrated by then),
+  // then for the browser to be idle, then for the slot to come within 200px of the viewport.
+  (function () {
+    var slot = document.querySelector('[data-ad-slot]');
+    var src = slot && slot.getAttribute('data-ad-src');
+    if (!slot || !src) return;
+    function load() {
+      var s = document.createElement('script');
+      s.async = true;
+      s.src = src;
+      document.head.appendChild(s);
+    }
+    function whenNear() {
+      if (!('IntersectionObserver' in window)) return load();
+      var io = new IntersectionObserver(
+        function (entries) {
+          if (
+            entries.some(function (e) {
+              return e.isIntersecting;
+            })
+          ) {
+            io.disconnect();
+            load();
+          }
+        },
+        { rootMargin: '200px' },
+      );
+      io.observe(slot);
+    }
+    function idle() {
+      if ('requestIdleCallback' in window) requestIdleCallback(whenNear, { timeout: 4000 });
+      else setTimeout(whenNear, 2000);
+    }
+    if (document.readyState === 'complete') idle();
+    else window.addEventListener('load', idle, { once: true });
+  })();
+</script>

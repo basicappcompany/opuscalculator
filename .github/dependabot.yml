@@ -1,0 +1,28 @@
+# Weekly dependency update pull requests (Prompts 15 and 16). Minor and patch updates are grouped into one pull request
+# a week per ecosystem so the review queue stays small; a major version arrives on its own. Every Dependabot pull request
+# goes through the normal flow: npm run verify on the branch, CI, then a human merge.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: 'Deps:'
+    groups:
+      minor-and-patch:
+        update-types: [minor, patch]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: 'CI:'
+    groups:
+      actions:
+        patterns: ['*']

@@ -1,0 +1,20 @@
+# Cloudflare Pages response headers (Prompt 15). Applied at the edge to every response; verified by `npm run build`
+# (scripts/check-security.ts) and, after the first deploy, with `curl -I https://opuscalculator.com/`.
+#
+# Content-Security-Policy hosts, and why each is there. Remove a host the day the feature behind it is removed:
+#   https://plausible.io   the cookieless analytics script and its event endpoint (loaded only when PLAUSIBLE_DOMAIN is set)
+# No ad network is allowed yet because none is chosen (docs/status.html 12.11). When one is switched on, add exactly the
+# hosts its documentation lists to script-src, img-src, frame-src and connect-src in the same change, and update /privacy.
+# 'unsafe-inline' is needed for the inline scripts Astro emits to hydrate the calculator and for the theme script that
+# stops a flash of the wrong colour scheme; inline styles come from the same build.
+/*
+  Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), interest-cohort=()
+  X-Frame-Options: DENY
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://plausible.io; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https://plausible.io; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'
+
+# Hashed build assets never change under the same name, so browsers and Cloudflare may keep them for a year.
+/_astro/*
+  Cache-Control: public, max-age=31536000, immutable

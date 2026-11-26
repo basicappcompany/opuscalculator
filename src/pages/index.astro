@@ -1,0 +1,71 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { CATEGORY_ICONS, CATEGORY_LABELS } from '../lib/categories';
+import { getRenderableHubs, hubPathFor } from '../lib/hubs';
+import { getPublishableCalculators } from '../lib/registry';
+
+// Only hubs that render are linked (CLAUDE.md rule 6).
+const hubs = getRenderableHubs();
+// The Tier 1 calculators: the pages each category hub is built around.
+const start = getPublishableCalculators(1).sort((a, b) => (a.slug < b.slug ? -1 : 1));
+---
+
+<BaseLayout
+  title="Opus Calculator: Free Online Calculators for Everyday Questions"
+  description="Free, accurate calculators for money, health, maths, dates and more, each with the formula shown and a worked example. Free calculators for everyday questions."
+  path="/"
+>
+  <section class="mx-auto max-w-3xl py-6 text-center sm:py-10">
+    <p class="inline-block rounded-full bg-accent-soft px-3 py-1 text-xs font-bold uppercase tracking-widest text-accent-strong">
+      Free · No sign-up · Formula shown
+    </p>
+    <h1 class="mt-4 text-3xl font-extrabold tracking-tight sm:text-5xl">
+      A calculator for <span class="gradient-text">every day</span> of the year
+    </h1>
+    <p class="mx-auto mt-4 max-w-2xl text-lg leading-relaxed text-muted">
+      Free calculators with the formula shown and a worked example, so you can see how every answer is reached. Choose a category to start.
+    </p>
+  </section>
+
+  <section aria-labelledby="categories-heading">
+    <h2 id="categories-heading" class="mb-4 text-2xl font-bold tracking-tight">
+      Browse by category
+    </h2>
+    <ul class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {hubs.map((h) => (
+        <li>
+          <a
+            href={hubPathFor(h.category)}
+            class="block h-full rounded-lg border border-border bg-card p-6 shadow-sm transition hover:-translate-y-0.5 hover:border-accent hover:shadow-lg"
+          >
+            <span aria-hidden="true" class="mb-3 grid size-11 place-items-center rounded-md bg-accent-soft text-2xl">
+              {CATEGORY_ICONS[h.category]}
+            </span>
+            <span class="block text-lg font-semibold text-fg">{CATEGORY_LABELS[h.category]} calculators</span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </section>
+
+  {start.length > 0 && (
+    <section aria-labelledby="popular-heading" class="mt-12">
+      <h2 id="popular-heading" class="mb-4 text-2xl font-bold tracking-tight">
+        Popular calculators
+      </h2>
+      <ul class="grid gap-3 sm:grid-cols-2">
+        {start.map((c) => (
+          <li>
+            <a
+              href={`/calculators/${c.slug}/`}
+              class="flex items-center justify-between rounded-md border border-border bg-card p-4 font-medium text-accent-strong hover:border-accent hover:bg-accent-soft"
+            >
+              {c.h1}
+              <span aria-hidden="true">→</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )}
+</BaseLayout>

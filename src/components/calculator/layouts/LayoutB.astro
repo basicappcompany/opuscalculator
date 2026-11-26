@@ -1,0 +1,85 @@
+---
+// Math and physics. The formula is typeset with KaTeX at build time (so it is in the raw HTML),
+// followed by a step-by-step derivation, a numeric worked example and a related-calculators sidebar.
+import 'katex/dist/katex.min.css';
+import type { CalculatorConfig } from '../../../lib/types';
+import type { LinkSet } from '../../../lib/linking';
+import { renderLatex, renderMathText, splitIntro } from '../../../lib/text';
+import AdSlot from '../AdSlot.astro';
+import Disclaimer from '../../Disclaimer.astro';
+import FaqAccordion from '../FaqAccordion.astro';
+import RelatedCalculators from '../RelatedCalculators.astro';
+
+interface Props {
+  config: CalculatorConfig;
+  related: LinkSet;
+}
+const { config, related } = Astro.props;
+const { lede, rest } = splitIntro(config.intro);
+const formulaHtml = config.formulaLatex ? renderLatex(config.formulaLatex, true) : null;
+---
+
+<article>
+  <header class="mb-6 max-w-3xl">
+    <h1 class="text-3xl font-bold tracking-tight sm:text-4xl">{config.h1}</h1>
+    <p class="mt-3 text-lg leading-relaxed text-muted">{lede}</p>
+  </header>
+
+  <div class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_17rem]">
+    <div class="min-w-0">
+      <slot name="widget" />
+
+      <Disclaimer category={config.category} lastUpdated={config.lastUpdated} />
+
+      <section aria-labelledby="formula-heading" class="mt-10">
+        <h2 id="formula-heading" class="mb-3 text-xl font-bold">
+          The formula
+        </h2>
+        {formulaHtml && (
+          <div
+            tabindex="0"
+            role="region"
+            aria-label="The formula, scrollable"
+            class="overflow-x-auto rounded-lg border border-border bg-card p-4 text-lg"
+            set:html={formulaHtml}
+          />
+        )}
+        <p class="mt-3 leading-relaxed text-muted">{config.formulaDescription}</p>
+      </section>
+
+      {config.derivation?.length ? (
+        <section aria-labelledby="derivation-heading" class="mt-10">
+          <h2 id="derivation-heading" class="mb-3 text-xl font-bold">
+            Step-by-step derivation
+          </h2>
+          <ol class="list-decimal space-y-3 pl-6 leading-relaxed marker:font-semibold marker:text-accent">
+            {config.derivation.map((step) => (
+              <li class="pl-1" set:html={renderMathText(step)} />
+            ))}
+          </ol>
+        </section>
+      ) : null}
+
+      <section aria-labelledby="example-heading" class="mt-10">
+        <h2 id="example-heading" class="mb-3 text-xl font-bold">
+          Worked example
+        </h2>
+        <p class="rounded-lg border-l-4 border-accent bg-accent-soft p-4 leading-relaxed">{config.workedExample}</p>
+      </section>
+
+      {rest && (
+        <section aria-labelledby="about-heading" class="prose-calc mt-10 max-w-3xl">
+          <h2 id="about-heading">About this calculator</h2>
+          <p>{rest}</p>
+        </section>
+      )}
+
+      <AdSlot />
+      <FaqAccordion faq={config.faq} />
+    </div>
+
+    <aside aria-label="Related calculators" class="lg:sticky lg:top-6 lg:self-start">
+      <RelatedCalculators links={related} variant="list" />
+    </aside>
+  </div>
+</article>

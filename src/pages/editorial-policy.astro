@@ -1,0 +1,72 @@
+---
+import StaticPage from '../layouts/StaticPage.astro';
+import { SITE } from '../config/site';
+---
+
+<StaticPage path="/editorial-policy/" h1="Editorial policy" updated="2026-11-23">
+  <p class="mt-6">
+    This page explains how every calculator on Opus Calculator is written, tested, reviewed and corrected, so you can judge how far to trust a result.
+  </p>
+
+  <h2>How a calculator is written</h2>
+  <p>
+    Each calculator starts with a plain description of what it works out, the exact formula, and a worked example done by hand. The page text opens with the
+    answer for a realistic set of numbers, then explains the method, the common mistakes and what the result does not include (for example, that a mortgage
+    payment here excludes property tax and insurance). Text is written for each calculator; pages are not produced by swapping a word into a template.
+  </p>
+
+  <h2>How a calculator is tested</h2>
+  <ul class="mt-2 list-disc space-y-2 pl-6">
+    <li>
+      Every calculator has automatic tests with known answers calculated independently of the code, including edge cases such as zero, empty and very large
+      values.
+    </li>
+    <li>All money, percentage and ratio arithmetic uses exact decimal numbers. Results are rounded to the cent the way a lender or shop would.</li>
+    <li>
+      The mortgage and loan calculators are compared with a separate month-by-month repayment schedule and must match to the cent. Where a calculator follows a
+      published standard or a regulated rule, the source is recorded in its tests.
+    </li>
+    <li>
+      The default result is part of the page HTML, and a test checks that the number quoted in the page text is the number the calculator really produces.
+    </li>
+  </ul>
+
+  <h2>The tier system and the quality gate</h2>
+  <p>
+    Calculators are grouped into three tiers. Tier 1 are hand-written pages for the most common needs. Tier 2 are common variations, such as a mortgage for a
+    particular country and term. Tier 3 are long-tail variations. Before any calculator can be published it must pass an automatic quality gate: enough original
+    explanatory text, a worked example, at least three frequently asked questions with real answers, results that depend only on the numbers you type, and text
+    that is clearly different from every other page. A page that fails is not published and cannot be linked from anywhere.
+  </p>
+  <p>
+    Pages are also released in stages ("cohorts"). A later stage is published only after the earlier stage has been indexed by search engines and is being read
+    by people. This keeps the site from adding pages faster than it can keep them accurate.
+  </p>
+
+  <h2>Review of health, finance, construction, food and science calculators</h2>
+  <p>
+    Calculators in these categories show a disclaimer under the result and a "last reviewed" date. Where a qualified reviewer has signed off a category, the
+    page names the reviewer and their credentials. The site does not invent credentials, and a reviewer is named only with their agreement.
+  </p>
+
+  <h2 id="unaudited">Unaudited calculators</h2>
+  <p>
+    At present no category has an external professional reviewer. Until one is named on a page, treat its result as an estimate that has been tested for
+    arithmetic correctness but not reviewed by a licensed professional. For these pages the "last reviewed" date is the date the calculator was last updated by
+    the site's owner, and the page does not name a reviewer. The disclaimer under each result applies in full: check anything that affects your health, your
+    money or a building with a qualified professional.
+  </p>
+
+  <h2>Corrections and reporting an error</h2>
+  <p>
+    If a result looks wrong, write to <a href={`mailto:${SITE.email.general}`}>{SITE.email.general}</a> with the calculator, the numbers you typed, the result
+    you got and the one you expected. We confirm the problem, fix the calculator and its tests, and update the "last updated" date on the page. If a correction
+    changes a result that people may have relied on, the page says what changed.
+  </p>
+
+  <h2>Independence</h2>
+  <p>
+    The site is paid for by one advertisement per page. Advertisers have no say in how a calculator works, which calculators exist, or what a page says. Read
+    <a href="/how-we-make-money/">how we make money</a>.
+  </p>
+</StaticPage>

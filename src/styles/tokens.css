@@ -1,0 +1,124 @@
+/*
+ * Design tokens: the one source of truth for colour, type, spacing, radii, shadows and fonts (Prompt 13).
+ * Component files never contain a hex colour, pixel or rem value: they use these tokens, directly through Tailwind
+ * utilities (bg-card, text-fg, rounded-lg, shadow-md) or through var(--token) in global.css.
+ *
+ * Light is the default. Dark follows the visitor's system setting unless they chose a theme with the header toggle
+ * (data-theme on <html>, saved in localStorage as opus-theme). `static` keeps every token in the CSS even when no
+ * utility uses it yet, so var(--color-x) always resolves.
+ */
+@theme static {
+  /* Colour. Contrast: text on bg and card is at least 4.5:1, UI outlines at least 3:1 (see tests/design-tokens.test.ts). */
+  --color-bg: #f6f7fb;
+  --color-fg: #0f172a;
+  --color-muted: #566074;
+  --color-card: #ffffff;
+  --color-border: #d5dbe8;
+  /* Outlines of controls (inputs, selects, buttons): at least 3:1 against the card, as WCAG 1.4.11 requires. */
+  --color-border-strong: #747f96;
+  --color-accent: #4f46e5;
+  --color-accent-fg: #ffffff;
+  --color-accent-strong: #3730a3;
+  --color-accent-soft: #eef0ff;
+  --color-accent-2: #7c3aed;
+  --color-danger: #c2262e;
+  --color-danger-soft: #fdecee;
+  --color-success: #0f7a4a;
+  --color-warn: #8a5a00;
+  --color-warn-soft: #fff6e0;
+  /* The result card keeps one gradient and white text in both themes, so its contrast never depends on the theme. */
+  --color-hero-from: #4f46e5;
+  --color-hero-to: #7c3aed;
+  --color-hero-fg: #ffffff;
+
+  /* Type scale: six named steps. Other Tailwind sizes (text-xl, text-3xl, ...) keep their defaults. */
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.25rem;
+  --text-2xl: 1.75rem;
+  --text-4xl: 2.25rem;
+
+  /* Radii */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 16px;
+  --radius-full: 9999px;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgb(15 23 42 / 0.06);
+  --shadow-md: 0 4px 14px rgb(15 23 42 / 0.08);
+  --shadow-lg: 0 16px 40px rgb(79 70 229 / 0.16);
+
+  /* Fonts */
+  --font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', 'Cascadia Mono', Consolas, monospace;
+}
+
+:root {
+  /* Spacing steps, for the few places plain CSS (not a utility) needs them. */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+  /* Reserved height of the one ad slot, so nothing shifts when an ad arrives. */
+  --size-ad-slot: 15.625rem;
+  --size-touch: 2.75rem;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --color-bg: #0c0f1a;
+    --color-fg: #e8ecf6;
+    --color-muted: #a3adc2;
+    --color-card: #131829;
+    --color-border: #38415a;
+    --color-border-strong: #7e8aa6;
+    --color-accent: #8b86ff;
+    --color-accent-fg: #0c0f1a;
+    --color-accent-strong: #c4c1ff;
+    --color-accent-soft: #1d2140;
+    --color-accent-2: #a78bfa;
+    --color-danger: #ff8a90;
+    --color-danger-soft: #3a1a20;
+    --color-success: #4cd694;
+    --color-warn: #f5c451;
+    --color-warn-soft: #3a2f10;
+    --color-hero-from: #4338ca;
+    --color-hero-to: #6d28d9;
+    --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.4);
+    --shadow-md: 0 4px 14px rgb(0 0 0 / 0.4);
+    --shadow-lg: 0 16px 40px rgb(0 0 0 / 0.5);
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme='dark'] {
+  --color-bg: #0c0f1a;
+  --color-fg: #e8ecf6;
+  --color-muted: #a3adc2;
+  --color-card: #131829;
+  --color-border: #38415a;
+  --color-border-strong: #7e8aa6;
+  --color-accent: #8b86ff;
+  --color-accent-fg: #0c0f1a;
+  --color-accent-strong: #c4c1ff;
+  --color-accent-soft: #1d2140;
+  --color-accent-2: #a78bfa;
+  --color-danger: #ff8a90;
+  --color-danger-soft: #3a1a20;
+  --color-success: #4cd694;
+  --color-warn: #f5c451;
+  --color-warn-soft: #3a2f10;
+  --color-hero-from: #4338ca;
+  --color-hero-to: #6d28d9;
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.4);
+  --shadow-md: 0 4px 14px rgb(0 0 0 / 0.4);
+  --shadow-lg: 0 16px 40px rgb(0 0 0 / 0.5);
+  color-scheme: dark;
+}

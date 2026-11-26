@@ -1,0 +1,11 @@
+---
+import ErrorPage from '../layouts/ErrorPage.astro';
+// Built to /500.html. A static host has no server that can fail, so Cloudflare Pages never answers with this page on its own.
+// It exists for the cases where something in front of the site (a Pages Function, a Cloudflare error rule or a proxy) wants a
+// friendly body for an HTTP 500 response. That response must set status 500 itself: a static file is always served with 200
+// when it is requested by its own address, which is why the page is noindex and is not in any sitemap.
+---
+
+<ErrorPage code="500" title="Something went wrong | Opus Calculator" heading="Something went wrong on our side." path="/500/">
+  <p>The page could not be shown. Please try again in a minute. If it keeps happening, tell us at hello@opuscalculator.com.</p>
+</ErrorPage>

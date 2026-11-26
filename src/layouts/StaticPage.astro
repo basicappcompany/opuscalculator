@@ -1,0 +1,26 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import { longDateLabel } from '../lib/ymyl';
+import { STATIC_PAGES } from '../lib/static-pages';
+
+// Shared shell for the site's own pages (about, policies, legal). One h1, semantic sections, a visible update date.
+interface Props {
+  path: string;
+  h1: string;
+  /** ISO date the content last changed. */
+  updated: string;
+}
+const { path, h1, updated } = Astro.props;
+const page = STATIC_PAGES.find((p) => p.path === path);
+if (!page) throw new Error(`StaticPage: ${path} is not in src/lib/static-pages.ts`);
+---
+
+<BaseLayout title={page.title} description={page.description} path={path}>
+  <article class="prose-calc max-w-3xl">
+    <h1 class="text-3xl font-bold tracking-tight sm:text-4xl">{h1}</h1>
+    <p class="mt-2 text-sm text-muted">
+      Last updated <time datetime={updated}>{longDateLabel(updated)}</time>
+    </p>
+    <slot />
+  </article>
+</BaseLayout>

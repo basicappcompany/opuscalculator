@@ -1,0 +1,7 @@
+Variable	Value	Notes
+SITE_URL	https://opuscalculator.com	Used for canonicals and sitemaps
+COHORT_1_PUBLISHED	true	Set at launch
+COHORT_2_PUBLISHED	false	Flip only when Cohort 1 indexation > 40%
+COHORT_3_PUBLISHED	false	Flip only when Cohort 2 indexation > 40%
+PLAUSIBLE_DOMAIN	opuscalculator.com	Analytics
+SEARCH_CONSOLE_CREDENTIALS	service account JSON	Only for check-indexation.ts, never in client bundle

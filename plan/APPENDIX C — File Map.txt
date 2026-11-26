@@ -1,0 +1,35 @@
+CLAUDE.md                          # the constraint document (Prompt 0)
+astro.config.mjs                   # site: https://opuscalculator.com
+src/
+  lib/
+    types.ts                       # CalculatorConfig
+    quality-gate.ts                # validateForIndexing()
+    registry.ts                    # aggregation + publishable filtering
+  config/
+    rollout.ts                     # cohort env flags
+  calculators/                     # hand-written configs (one file each)
+  generators/                      # programmatic config factories
+    units.ts  finance.ts  health.ts  math.ts  physics.ts
+    everyday.ts  emerging.ts  content.ts
+  content/
+    categories/                    # 800+ word hub copy, one file per category
+  components/
+    calculator/
+      CalculatorWidget.tsx         # the React island
+      AdSlot.astro
+      layouts/
+        LayoutA.astro  LayoutB.astro  LayoutC.astro
+  pages/
+    calculators/[slug].astro
+    categories/[category].astro
+    all-calculators.astro
+    admin/indexation.astro
+scripts/
+  count-calculators.ts
+  link-audit.ts
+  check-indexation.ts
+docs/
+  DISTRIBUTION.md
+public/
+  robots.txt
+  sitemap-index.xml                # generated at build

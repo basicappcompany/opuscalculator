@@ -1,0 +1,61 @@
+name: Preview
+
+# Prompt 16, step 2: build the pull request and publish it as a Cloudflare Pages preview, then comment the URL.
+#
+# INERT UNTIL YOU TURN IT ON, and NOT TESTED (it needs your Cloudflare account). To enable it:
+#   1. Create the Pages project (tracker 9.6) named opuscalculator, or change PROJECT below.
+#   2. In GitHub, Settings, Secrets and variables, Actions: add the secrets CLOUDFLARE_API_TOKEN (permission: Cloudflare
+#      Pages, Edit) and CLOUDFLARE_ACCOUNT_ID.
+#   3. Add the repository variable CF_PREVIEW with the value true.
+# It uploads a build made here (direct upload), so it spends GitHub minutes, not Cloudflare build minutes. Pull requests
+# from forks get no secrets from GitHub, so they are skipped.
+on:
+  pull_request:
+    branches: [main]
+    paths-ignore:
+      - 'docs/**'
+      - 'plan/**'
+      - '**/*.md'
+
+concurrency:
+  group: preview-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+
+env:
+  PROJECT: opuscalculator
+  ASTRO_TELEMETRY_DISABLED: '1'
+  HUSKY: '0'
+
+jobs:
+  preview:
+    if: ${{ vars.CF_PREVIEW == 'true' && github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - run: npm run build
+      # A branch name can contain shell metacharacters, so it never goes into the command text as written: it is read from
+      # an environment variable and cut down to letters, digits, dot, dash and underscore first.
+      - id: branch
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+        run: echo "name=$(printf '%s' "$HEAD_REF" | tr -c 'A-Za-z0-9._-' '-')" >> "$GITHUB_OUTPUT"
+      - id: deploy
+        uses: cloudflare/wrangler-action@v4
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy dist --project-name=${{ env.PROJECT }} --branch=${{ steps.branch.outputs.name }}
+      - uses: marocchino/sticky-pull-request-comment@v3
+        with:
+          header: preview
+          message: |
+            Preview deployed: ${{ steps.deploy.outputs.deployment-url }}
+            Commit ${{ github.event.pull_request.head.sha }}

@@ -1,0 +1,46 @@
+---
+import type { LinkSet } from '../../lib/linking';
+interface Props {
+  links: LinkSet;
+  /** list: stacked links for a sidebar. grid: cards in a row. */
+  variant?: 'list' | 'grid';
+}
+const { links, variant = 'grid' } = Astro.props;
+const listClass = variant === 'list' ? 'space-y-2' : 'grid gap-3 sm:grid-cols-2 lg:grid-cols-3';
+const linkClass = 'block rounded-lg border border-border bg-card p-3 font-medium text-accent-strong hover:bg-accent-soft';
+const groups = [
+  { id: 'start', heading: 'Start here', items: links.start },
+  { id: 'siblings', heading: links.clusterLabel ? `More in ${links.clusterLabel.toLowerCase()}` : 'More in this category', items: links.siblings },
+  { id: 'cross', heading: 'Related in other categories', items: links.cross },
+  { id: 'more', heading: 'More calculators', items: links.more },
+].filter((g) => g.items.length > 0);
+---
+
+{(groups.length > 0 || links.hub) && (
+  <section aria-labelledby="related-heading" class="mt-10 first:mt-0">
+    <h2 id="related-heading" class="mb-3 text-xl font-bold">
+      Related calculators
+    </h2>
+    {links.hub && (
+      <p class="mb-4">
+        <a href={links.hub.href} class="font-medium text-accent-strong underline">
+          {links.hub.label}
+        </a>
+      </p>
+    )}
+    {groups.map((g) => (
+      <div class="mb-5">
+        <h3 class="mb-2 text-base font-semibold text-muted">{g.heading}</h3>
+        <ul class={listClass}>
+          {g.items.map((c) => (
+            <li>
+              <a href={`/calculators/${c.slug}/`} class={linkClass}>
+                {c.h1}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    ))}
+  </section>
+)}

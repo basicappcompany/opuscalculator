@@ -1,0 +1,45 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import { CATEGORY_LABELS } from '../lib/categories';
+import { getRenderableHubs, hubPathFor } from '../lib/hubs';
+
+// Shared shell for the 404 and 500 pages. Both are noindex and are not in any sitemap (verify-dist checks this).
+// They link to the home page and to hubs that render (CLAUDE.md rule 6), never to a page that is not published.
+interface Props {
+  code: string;
+  title: string;
+  heading: string;
+  path: string;
+}
+const { code, title, heading, path } = Astro.props;
+const hubs = getRenderableHubs();
+---
+
+<BaseLayout title={title} description="This page could not be shown. Browse calculators from the home page." path={path} noindex>
+  <section class="mx-auto max-w-2xl rounded-lg border border-border bg-card px-6 py-12 text-center shadow-md">
+    <p class="gradient-text font-mono text-7xl font-extrabold leading-none sm:text-8xl">{code}</p>
+    <h1 class="mt-4 text-2xl font-bold tracking-tight">{heading}</h1>
+    <div class="mx-auto mt-3 max-w-prose leading-relaxed text-muted">
+      <slot />
+    </div>
+    <p class="mt-6">
+      <a href="/" class="inline-flex h-10 items-center rounded-md bg-accent px-4 text-sm font-medium text-accent-fg hover:bg-accent-strong">
+        Go to the home page
+      </a>
+    </p>
+    {hubs.length > 0 && (
+      <nav aria-label="Calculator categories" class="mt-6">
+        <p class="mb-2 text-sm font-medium">Or pick a category</p>
+        <ul class="flex flex-wrap justify-center gap-2">
+          {hubs.map((h) => (
+            <li>
+              <a href={hubPathFor(h.category)} class="inline-block rounded-full border border-border px-3 py-1 text-sm text-accent-strong hover:bg-accent-soft">
+                {CATEGORY_LABELS[h.category]}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+    )}
+  </section>
+</BaseLayout>

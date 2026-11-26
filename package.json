@@ -1,0 +1,71 @@
+{
+  "name": "opuscalculator",
+  "type": "module",
+  "version": "0.0.1",
+  "engines": {
+    "node": ">=22.23.4"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build && node scripts/run.mjs scripts/verify-dist.ts && node scripts/run.mjs scripts/check-bundle-size.ts && node scripts/run.mjs scripts/check-security.ts",
+    "preview": "astro preview",
+    "astro": "astro",
+    "typecheck": "astro sync && tsc --noEmit",
+    "test": "vitest run",
+    "count": "node scripts/run.mjs scripts/count-calculators.ts",
+    "audit": "node scripts/run.mjs scripts/link-audit.ts",
+    "verify": "node scripts/check-lockfile.mjs && npm run lint && npm run typecheck && npm test && npm run build",
+    "indexation": "node scripts/run.mjs scripts/check-indexation.ts",
+    "gate": "node scripts/run.mjs scripts/promotion-gate.ts",
+    "dashboard": "node scripts/run.mjs scripts/indexation-dashboard.ts",
+    "prune": "node scripts/run.mjs scripts/prune.ts",
+    "prelaunch": "node scripts/run.mjs scripts/prelaunch.ts",
+    "audit:prelaunch": "node scripts/run.mjs scripts/prelaunch-audit.ts",
+    "a11y": "node scripts/a11y.mjs",
+    "lighthouse": "node scripts/lighthouse-audit.mjs",
+    "e2e": "playwright test tests/e2e",
+    "visual": "playwright test tests/visual --project=chromium",
+    "lint": "oxlint src scripts tests functions astro.config.mjs vitest.config.ts playwright.config.ts",
+    "format": "prettier --write .",
+    "prepare": "husky || true"
+  },
+  "dependencies": {
+    "@astrojs/react": "^7.1.9",
+    "@tailwindcss/vite": "^4.3.5",
+    "astro": "^7.4.13",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "decimal.js": "^10.6.0",
+    "katex": "^0.19.1",
+    "lucide-react": "^1.77.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "tailwind-merge": "^3.7.1",
+    "tailwindcss": "^4.3.5",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.14.0",
+    "@playwright/test": "^1.65.1",
+    "@types/katex": "^0.16.8",
+    "@types/node": "^26.6.6",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.6.2",
+    "oxlint": "^1.94.0",
+    "prettier": "^3.10.1",
+    "prettier-plugin-astro": "^1.1.2",
+    "typescript": "^7.0.2",
+    "vitest": "^5.1.1"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,mjs,js}": [
+      "oxlint",
+      "prettier --write"
+    ],
+    "*.{astro,css,json,md}": [
+      "prettier --write"
+    ]
+  }
+}

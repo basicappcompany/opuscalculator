@@ -1,0 +1,56 @@
+name: CI
+
+# One job named `check`, the same name as the minimal workflow it replaces, so a required status check on main keeps
+# working. Pull requests to main only (no run on push to main, no schedule, no matrix); docs-only changes do not trigger it.
+# No browser tests: `npm run a11y`, `npm run e2e` and `npm run visual` are run locally before a release (CLAUDE.md).
+#
+# What it adds over the earlier workflow: lint (oxlint), the link audit on the built site, and `npm audit` when the
+# dependencies change. The build already runs verify-dist, the bundle budget and the security check.
+on:
+  pull_request:
+    branches: [main]
+    paths-ignore:
+      - 'docs/**'
+      - 'plan/**'
+      - '**/*.md'
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      ASTRO_TELEMETRY_DISABLED: '1'
+      HUSKY: '0' # `npm ci` runs the prepare script; do not install git hooks on a runner
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      # The build runs verify-dist (links, sitemaps, footer), the bundle budget and the security check.
+      - run: npm run build
+      - run: npm run audit
+      # A new advisory against a dependency must not turn every unrelated pull request red, so the audit runs only when
+      # this pull request changes package.json or the lockfile (Dependabot's always do).
+      - name: npm audit (only when dependencies change)
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          if git diff --name-only "origin/${BASE_REF}...HEAD" | grep -qE '^package(-lock)?\.json$'; then
+            npm audit --audit-level=high
+          else
+            echo "package.json and the lockfile are unchanged: skipping npm audit"
+          fi

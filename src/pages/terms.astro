@@ -1,0 +1,79 @@
+---
+import StaticPage from '../layouts/StaticPage.astro';
+import { SITE } from '../config/site';
+---
+
+<StaticPage path="/terms/" h1="Terms of use" updated={SITE.legalUpdated}>
+  <p class="mt-6">
+    By using Opus Calculator you agree to these terms. If you do not agree, please do not use the site. They are written in plain language; the headings tell
+    you what each part covers.
+  </p>
+
+  <h2>What the site is</h2>
+  <p>
+    Opus Calculator provides free online calculators and explanations for general information, learning and estimating. It is not a lender, broker, clinic,
+    adviser or professional service of any kind.
+  </p>
+
+  <h2>Acceptable use</h2>
+  <p>You may use the site for lawful personal, educational or business purposes. You agree not to:</p>
+  <ul class="mt-2 list-disc space-y-2 pl-6">
+    <li>copy the site at a scale that harms its performance, or run automated tools that overload it;</li>
+    <li>try to break, probe or gain unauthorised access to the site or the systems that host it;</li>
+    <li>use the site to break the law or someone else's rights;</li>
+    <li>present the site's calculators or text as your own, or republish a substantial part of them without permission.</li>
+  </ul>
+  <p>Search engines and AI crawlers that follow the site's robots.txt rules are welcome.</p>
+
+  <h2>Ownership</h2>
+  <p>
+    The text, design, formulas as presented and software of the site are owned by the site's owner or used with permission, and are protected by copyright.
+    Facts, formulas and mathematical methods themselves are not owned by anyone. You may link to any page, quote short extracts with a link back, and use the
+    results you calculate for any purpose.
+  </p>
+
+  <h2>No advice, no warranty</h2>
+  <p>
+    Calculators give estimates based on the numbers you enter and the formulas shown on each page. They are for information and education only, and are not
+    financial, investment, tax, medical, legal, engineering or other professional advice. Real-world outcomes depend on details a calculator cannot know, such
+    as fees, taxes, local rules and your health. Always check important results with a qualified professional.
+  </p>
+  <p>
+    The site and everything on it is provided "as is" and "as available". We work hard to make the calculators correct and we test them, but we do not promise
+    that they are free from errors, complete, or suitable for your purpose, or that the site will always be available.
+  </p>
+
+  <h2>Limitation of liability</h2>
+  <p>
+    To the fullest extent the law allows, the site's owner is not liable for any indirect, incidental, special, consequential or punitive loss, or for any loss
+    of profit, savings, data or opportunity, arising from your use of the site or your reliance on a result, even if we were told it was possible. Where the law
+    does not allow a limit, our total liability is limited to the smallest amount the law permits. Nothing in these terms limits liability that cannot lawfully
+    be limited, such as for fraud or for death or personal injury caused by negligence, or your statutory consumer rights.
+  </p>
+
+  <h2>Links and ads</h2>
+  <p>
+    Pages may link to other sites and show advertisements. We do not control them and are not responsible for them. See the{' '}
+    <a href="/ad-disclosure/">ad disclosure</a>.
+  </p>
+
+  <h2>Governing law</h2>
+  {SITE.jurisdiction ? (
+    <p>
+      These terms are governed by the laws of {SITE.jurisdiction}, and the courts of {SITE.jurisdiction} have jurisdiction over any dispute, subject to any
+      mandatory rights you have where you live.
+    </p>
+  ) : (
+    <p>
+      These terms are governed by the laws of [governing jurisdiction to be confirmed before launch], subject to any mandatory rights you have where you live.
+    </p>
+  )}
+
+  <h2>Changes to these terms</h2>
+  <p>We may change these terms. The date at the top shows the latest version, and using the site after a change means you accept the new terms.</p>
+
+  <h2>Contact</h2>
+  <p>
+    Questions about these terms: <a href={`mailto:${SITE.email.general}`}>{SITE.email.general}</a>. Copyright notices: see the <a href="/dmca/">DMCA page</a>.
+  </p>
+</StaticPage>

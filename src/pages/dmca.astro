@@ -1,0 +1,55 @@
+---
+import StaticPage from '../layouts/StaticPage.astro';
+import { SITE } from '../config/site';
+---
+
+<StaticPage path="/dmca/" h1="DMCA and copyright notices" updated={SITE.legalUpdated}>
+  <p class="mt-6">
+    Opus Calculator respects the rights of copyright owners. If you believe something on the site infringes your copyright, you can send a notice using the
+    process below. Notices and counter-notices go to the designated contact: <a href={`mailto:${SITE.email.dmca}`}>{SITE.email.dmca}</a>.
+  </p>
+
+  <h2>Sending a takedown notice</h2>
+  <p>Please include all of the following, in writing, so that we can act on it:</p>
+  <ol class="mt-2 list-decimal space-y-2 pl-6">
+    <li>Your name, address, telephone number and email address.</li>
+    <li>A description of the copyrighted work you say has been infringed, and where it can be seen (a link, if possible).</li>
+    <li>The web address (URL) of the page on Opus Calculator that has the material you say infringes, so we can find it.</li>
+    <li>A statement that you have a good-faith belief that the use is not authorised by the copyright owner, its agent or the law.</li>
+    <li>
+      A statement that the information in your notice is accurate and, under penalty of perjury, that you are the copyright owner or authorised to act for the
+      owner.
+    </li>
+    <li>Your physical or electronic signature.</li>
+  </ol>
+  <p>A notice that leaves these out may not be actionable. Knowingly making a false claim can make you liable for damages.</p>
+
+  <h2>What we do with a notice</h2>
+  <p>
+    When we receive a complete notice we review it promptly. If it appears valid, we remove or disable access to the material, and we may tell the person who
+    published it so they can respond. We may keep a record of the notice.
+  </p>
+
+  <h2>Sending a counter-notice</h2>
+  <p>If material was removed and you believe that was a mistake, you can reply with a counter-notice that includes:</p>
+  <ol class="mt-2 list-decimal space-y-2 pl-6">
+    <li>Your name, address, telephone number and email address.</li>
+    <li>A description of the material that was removed and where it appeared before it was removed.</li>
+    <li>A statement, under penalty of perjury, that you have a good-faith belief the material was removed because of a mistake or misidentification.</li>
+    <li>
+      A statement that you consent to the jurisdiction of the courts for your address (or, outside the United States, of any court where the site's owner can be
+      found), and that you will accept legal service from the person who sent the original notice.
+    </li>
+    <li>Your physical or electronic signature.</li>
+  </ol>
+  <p>
+    We pass a valid counter-notice to the person who sent the original notice. Unless they tell us within 10 to 14 business days that they have started court
+    action, we may restore the material.
+  </p>
+
+  <h2>Repeat infringers</h2>
+  <p>In suitable circumstances, we will remove material from, or restrict, a source that repeatedly infringes copyright.</p>
+
+  <h2>Not a legal service</h2>
+  <p>This page describes our process. It is not legal advice. If you are unsure of your rights, talk to a lawyer.</p>
+</StaticPage>

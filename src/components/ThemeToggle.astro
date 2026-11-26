@@ -1,0 +1,44 @@
+---
+// Light/dark switch. A real <button> with aria-pressed (true while dark), reachable by keyboard, with a visible focus ring.
+// The saved choice lives in localStorage as opus-theme and is applied by the inline script in <head>, before first paint.
+// With no saved choice the site follows the system setting, and keeps following it if it changes.
+---
+
+<button
+  id="theme-toggle"
+  type="button"
+  aria-pressed="false"
+  aria-label="Dark mode"
+  title="Dark mode"
+  class="grid size-9 place-items-center rounded-full border border-border-strong bg-card text-lg text-fg shadow-sm hover:border-accent"
+>
+  <span aria-hidden="true" data-theme-icon>
+    🌙
+  </span>
+</button>
+
+<script>
+  const button = document.getElementById('theme-toggle') as HTMLButtonElement | null;
+  if (button) {
+    const root = document.documentElement;
+    const icon = button.querySelector('[data-theme-icon]');
+    const systemDark = window.matchMedia('(prefers-color-scheme: dark)');
+    const isDark = () => (root.dataset.theme ? root.dataset.theme === 'dark' : systemDark.matches);
+    const paint = () => {
+      button.setAttribute('aria-pressed', String(isDark()));
+      if (icon) icon.textContent = isDark() ? '☀️' : '🌙';
+    };
+    button.addEventListener('click', () => {
+      const next = isDark() ? 'light' : 'dark';
+      root.dataset.theme = next;
+      try {
+        localStorage.setItem('opus-theme', next);
+      } catch {
+        /* private mode: the choice lasts for this page only */
+      }
+      paint();
+    });
+    systemDark.addEventListener('change', paint);
+    paint();
+  }
+</script>

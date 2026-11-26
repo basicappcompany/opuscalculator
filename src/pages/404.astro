@@ -1,0 +1,9 @@
+---
+import ErrorPage from '../layouts/ErrorPage.astro';
+// Built to /404.html. Cloudflare Pages serves it for any unknown URL and sets the 404 status itself, so no server code is needed.
+// Check with `curl -I https://opuscalculator.com/no-such-page` after the first deploy: expect HTTP 404.
+---
+
+<ErrorPage code="404" title="Page not found | Opus Calculator" heading="We could not find that page." path="/404/">
+  <p>There is nothing at this address. The page may have moved, or the link may have a typo.</p>
+</ErrorPage>

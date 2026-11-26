@@ -1,0 +1,4 @@
+Gate	Condition	Action
+Promote Cohort 2	Cohort 1 indexation > 40% AND ≥ 20% of Cohort 1 pages have organic clicks	Set COHORT_2_PUBLISHED=true, rebuild, submit new sitemaps separately in Search Console
+Promote Cohort 3	Cohort 2 indexation > 40% AND ≥ 20% of Cohort 2 pages have organic clicks	Set COHORT_3_PUBLISHED=true, rebuild
+Demote a cohort	Indexation rate falls below 30%	Set the flag back to false for the worst-performing cluster and set those pages to noindex

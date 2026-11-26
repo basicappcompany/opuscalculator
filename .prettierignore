@@ -1,0 +1,17 @@
+# Build output, dependencies and generated files
+dist/
+node_modules/
+.astro/
+reports/
+test-results/
+playwright-report/
+blob-report/
+package-lock.json
+
+# Hand-laid-out files that a formatter would only make worse
+docs/status.html
+docs/ui-demo.html
+scripts/brand/og-template.html
+plan/
+public/
+tests/visual/**/*-snapshots/

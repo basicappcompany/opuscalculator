@@ -1,0 +1,161 @@
+---
+// Category hub (Prompt 4). Renders only when the category has a published calculator AND at least
+// HUB_MIN_WORDS of analysis; a short hub with calculators fails the build (see selectRenderableHubs).
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import JsonLd from '../../components/JsonLd.astro';
+import Breadcrumbs from '../../components/calculator/Breadcrumbs.astro';
+import type { HubContent } from '../../content/categories/types';
+import { CATEGORY_LABELS } from '../../lib/categories';
+import { getRenderableHubs, hubPathFor } from '../../lib/hubs';
+import { getCalculatorsByCategory } from '../../lib/registry';
+import { hubJsonLd } from '../../lib/seo';
+import type { CalculatorConfig } from '../../lib/types';
+
+export function getStaticPaths() {
+  return getRenderableHubs().map((hub) => ({ params: { category: hub.category }, props: { hub } }));
+}
+
+interface Props {
+  hub: HubContent;
+}
+const { hub } = Astro.props;
+const label = CATEGORY_LABELS[hub.category];
+const path = hubPathFor(hub.category);
+
+// Published calculators only (CLAUDE.md rule 6): every link below comes from this list.
+const published = getCalculatorsByCategory(hub.category);
+const bySlug = new Map(published.map((c) => [c.slug, c]));
+
+// Sub-clusters in the order the copy file gives, then anything published but not yet placed.
+const placed = new Set<string>();
+const groups: { label: string; blurb?: string; items: CalculatorConfig[] }[] = [];
+for (const cluster of hub.subclusters) {
+  const items = cluster.slugs.map((s) => bySlug.get(s)).filter((c): c is CalculatorConfig => Boolean(c));
+  items.forEach((c) => placed.add(c.slug));
+  if (items.length) groups.push({ label: cluster.label, blurb: cluster.blurb, items });
+}
+const rest = published.filter((c) => !placed.has(c.slug));
+// Anything not placed by the copy file is grouped by its own sub-cluster (generated pages carry one), then the remainder.
+const bySub = new Map<string, CalculatorConfig[]>();
+for (const c of rest) {
+  const key = c.subCluster ?? '';
+  bySub.set(key, [...(bySub.get(key) ?? []), c]);
+}
+for (const [key, items] of [...bySub].sort(([a], [b]) => (a < b ? -1 : 1))) {
+  const sorted = [...items].sort((a, b) => (a.slug < b.slug ? -1 : 1));
+  if (key) {
+    // Generated pages carry their own group name: a family key for converters ("digital-storage"), a phrase otherwise.
+    const text = key.replace(/-/g, ' ');
+    const named = `${text.charAt(0).toUpperCase()}${text.slice(1)}`;
+    groups.push({ label: hub.category === 'conversion' ? `${named} converters` : named, items: sorted });
+  } else groups.push({ label: groups.length ? `More ${label.toLowerCase()} calculators` : `${label} calculators`, items: sorted });
+}
+
+const featured = hub.featured.filter((f) => bySlug.has(f.slug));
+const guide = hub.guide.filter((g) => bySlug.has(g.slug));
+
+const crumbs = [{ label: 'Home', href: '/' }, { label }];
+const jsonLd = hubJsonLd(
+  hub,
+  path,
+  groups.flatMap((g) => g.items),
+  crumbs,
+);
+---
+
+<BaseLayout title={hub.title} description={hub.metaDescription} path={path}>
+  <JsonLd slot="head" data={jsonLd} />
+  <Breadcrumbs items={crumbs} />
+  <article class="max-w-3xl">
+    <header class="mb-8">
+      <h1 class="text-3xl font-bold tracking-tight sm:text-4xl">{hub.h1}</h1>
+      <p class="mt-3 text-lg leading-relaxed text-muted">{hub.lede}</p>
+    </header>
+
+    <section aria-labelledby="all-heading">
+      <h2 id="all-heading" class="mb-4 text-xl font-bold">
+        {label} calculators
+      </h2>
+      {groups.map((g, i) => (
+        <section aria-labelledby={`group-${i}`} class="mb-6">
+          <h3 id={`group-${i}`} class="text-lg font-semibold">
+            {g.label}
+          </h3>
+          {g.blurb && <p class="mt-1 text-muted">{g.blurb}</p>}
+          {g.items.length > 12 ? (
+            <ul class="mt-3 grid gap-x-4 gap-y-1 sm:grid-cols-2 lg:grid-cols-3">
+              {g.items.map((c) => (
+                <li>
+                  <a href={`/calculators/${c.slug}/`} class="text-accent-strong underline">
+                    {c.h1}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <ul class="mt-3 grid gap-3 sm:grid-cols-2">
+              {g.items.map((c) => (
+                <li>
+                  <a href={`/calculators/${c.slug}/`} class="block h-full rounded-lg border border-border bg-card p-3 hover:bg-accent-soft">
+                    <span class="font-medium text-accent-strong">{c.h1}</span>
+                    <span class="mt-1 block text-sm text-muted">{c.metaDescription}</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      ))}
+    </section>
+
+    {featured.length > 0 && (
+      <section aria-labelledby="popular-heading" class="mt-10">
+        <h2 id="popular-heading" class="mb-3 text-xl font-bold">
+          Most used {label.toLowerCase()} calculators
+        </h2>
+        <ul class="space-y-4">
+          {featured.map((f) => (
+            <li>
+              <h3 class="font-semibold">
+                <a href={`/calculators/${f.slug}/`} class="text-accent-strong underline">
+                  {bySlug.get(f.slug)?.h1}
+                </a>
+              </h3>
+              <p class="mt-1 leading-relaxed text-muted">{f.blurb}</p>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )}
+
+    {guide.length > 0 && (
+      <section aria-labelledby="choose-heading" class="mt-10">
+        <h2 id="choose-heading" class="mb-3 text-xl font-bold">
+          How to choose the right {label.toLowerCase()} calculator
+        </h2>
+        <ul class="space-y-3">
+          {guide.map((g) => (
+            <li class="leading-relaxed">
+              <strong>{g.situation}:</strong> start with the{' '}
+              <a href={`/calculators/${g.slug}/`} class="text-accent-strong underline">
+                {bySlug.get(g.slug)?.h1.toLowerCase()}
+              </a>
+              . {g.advice}
+            </li>
+          ))}
+        </ul>
+      </section>
+    )}
+
+    <div class="prose-calc mt-10">
+      {hub.sections.map((s) => (
+        <section>
+          <h2>{s.heading}</h2>
+          {s.paragraphs.map((p) => (
+            <p>{p}</p>
+          ))}
+        </section>
+      ))}
+    </div>
+  </article>
+</BaseLayout>

@@ -1,0 +1,48 @@
+---
+import { disclaimerFor, isYmyl } from '../content/disclaimers';
+import { reviewerFor } from '../content/reviewers';
+import { reviewInfo } from '../lib/ymyl';
+import type { Category } from '../lib/types';
+
+// Category disclaimer and review line, rendered in the server HTML (never a modal, a tooltip or client-side).
+// Sits directly below the results card and above the ad slot.
+interface Props {
+  category: Category;
+  lastUpdated: string;
+}
+const { category, lastUpdated } = Astro.props;
+const text = disclaimerFor(category);
+const review = isYmyl(category) ? reviewInfo(category, lastUpdated) : null;
+const reviewer = reviewerFor(category);
+---
+
+{text && (
+  <aside role="note" class="disclaimer my-6 rounded-lg border border-border bg-card p-4 text-sm leading-relaxed text-muted">
+    <p>{text}</p>
+    {review && (
+      <p class="mt-2">
+        <span>
+          Last reviewed: <time datetime={review.date}>{review.dateLabel}</time>
+        </span>
+        {reviewer && (
+          <span>
+            {' '}
+            · Reviewed by{' '}
+            {reviewer.profileUrl ? (
+              <a href={reviewer.profileUrl} rel="author">
+                {reviewer.name}
+              </a>
+            ) : (
+              reviewer.name
+            )}
+            , {reviewer.credentials}
+          </span>
+        )}{' '}
+        ·{' '}
+        <a href="/editorial-policy/" class="underline">
+          How we review
+        </a>
+      </p>
+    )}
+  </aside>
+)}

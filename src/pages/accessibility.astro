@@ -1,0 +1,56 @@
+---
+import StaticPage from '../layouts/StaticPage.astro';
+import { SITE } from '../config/site';
+---
+
+<StaticPage path="/accessibility/" h1="Accessibility statement" updated="2026-11-23">
+  <p class="mt-6">
+    Opus Calculator aims to be usable by everyone, including people who use screen readers, keyboards, voice control or magnification. Our target is
+    {SITE.accessibilityTarget} (the Web Content Accessibility Guidelines, version 2.2, level AA).
+  </p>
+
+  <h2>What we do</h2>
+  <ul class="mt-2 list-disc space-y-2 pl-6">
+    <li>Every field has a visible label, and every error message is tied to the field it belongs to.</li>
+    <li>
+      Fields, buttons and links can be used with a keyboard, with a visible focus outline, and a link at the top of each page skips straight to the calculator.
+    </li>
+    <li>Text has enough contrast against its background in both the light and the dark theme, and the colours are checked by automatic tests.</li>
+    <li>When a result changes it is announced politely to screen readers once you stop typing, not on every key press.</li>
+    <li>Pages are built from plain, structured HTML: one main heading, ordered sections, and descriptive link text.</li>
+    <li>
+      Pages reflow at 320 pixels wide and when zoomed to 200%, without sideways scrolling. Wide tables scroll inside their own box, which can be reached with
+      the keyboard.
+    </li>
+    <li>The default answer is in the page itself, so it does not depend on scripts to be read.</li>
+  </ul>
+
+  <h2>How it is checked</h2>
+  <p>
+    Our goal is to run automated accessibility checks (axe-core) against representative pages on every release, and to fix any violation they find. Automated
+    checks find only part of the possible problems, so they do not replace testing with people who use assistive technology.
+  </p>
+
+  <h2>Known limitations</h2>
+  <ul class="mt-2 list-disc space-y-2 pl-6">
+    <li>
+      The site has not yet had an audit by an independent accessibility specialist, and has not been tested with every screen reader and browser combination.
+    </li>
+    <li>
+      Some formulas are typeset with mathematical markup. Screen readers vary in how well they read them, so each formula is also written out in words on the
+      page.
+    </li>
+    <li>Date fields use your browser's own date control, which differs between browsers and devices.</li>
+    <li>
+      The advertisement is supplied by a third party, so we cannot guarantee that its content is accessible. It is always separate from the calculator and never
+      needs to be used.
+    </li>
+  </ul>
+
+  <h2>Report a barrier</h2>
+  <p>
+    If something on the site is hard or impossible for you to use, please write to <a href={`mailto:${SITE.email.accessibility}`}>{SITE.email.accessibility}</a>{' '}
+    with the page address, what you were trying to do, and the browser and assistive technology you use. We reply within {SITE.respondWithinBusinessDays}{' '}
+    business days and tell you what we will do about it.
+  </p>
+</StaticPage>

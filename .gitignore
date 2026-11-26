@@ -1,0 +1,40 @@
+# build output
+dist/
+# generated types
+.astro/
+
+# dependencies
+node_modules/
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+
+# environment variables
+.env
+.env.production
+
+# macOS-specific files
+.DS_Store
+
+# jetbrains setting folder
+.idea/
+
+# local-only files (claude-toggle.bat holds an API key)
+claude-toggle.bat
+*.iml
+
+# Prompt 8: local monitoring output (URLs and traffic numbers), never committed or deployed
+indexation.csv
+reports/
+
+# Working topic lists taken from a public competitor catalog: kept out of the public repo
+plan/private/
+
+# Prompt 17: Playwright output (reports, traces, failure screenshots). Committed baselines live in tests/visual/*-snapshots/.
+test-results/
+playwright-report/
+blob-report/

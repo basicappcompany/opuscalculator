@@ -1,0 +1,405 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Opus Calculator — UI/UX demo</title>
+<meta name="description" content="Look-and-feel demo for Opus Calculator: tokens, dark mode, calculator widget states, hub cards, 404.">
+<script>
+  // No flash of the wrong theme: set it before CSS paints (Prompt 13, step 3).
+  try { var t = localStorage.getItem('opus-theme'); if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t); } catch (e) {}
+</script>
+<style>
+  /* ---------- design tokens (Prompt 13: one source of truth) ---------- */
+  :root {
+    --color-bg: #f6f7fb; --color-fg: #0f172a; --color-muted: #5b6475; --color-border: #e3e7f0;
+    --color-card: #ffffff; --color-accent: #4f46e5; --color-accent-fg: #ffffff; --color-accent-soft: #eef0ff;
+    --color-danger: #c2262e; --color-danger-soft: #fdecee; --color-success: #138a55; --color-warn-soft: #fff6e0; --color-warn: #8a5a00;
+    --text-xs: .75rem; --text-sm: .875rem; --text-md: 1rem; --text-lg: 1.25rem; --text-2xl: 1.75rem; --text-4xl: 2.5rem;
+    --space-1: .25rem; --space-2: .5rem; --space-3: .75rem; --space-4: 1rem; --space-6: 1.5rem; --space-8: 2rem; --space-12: 3rem; --space-16: 4rem;
+    --radius-sm: 6px; --radius-md: 10px; --radius-lg: 18px; --radius-full: 999px;
+    --shadow-sm: 0 1px 2px rgb(15 23 42 / .06);
+    --shadow-md: 0 4px 14px rgb(15 23 42 / .08);
+    --shadow-lg: 0 16px 40px rgb(79 70 229 / .16);
+    --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", Consolas, monospace;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --color-bg: #0c0f1a; --color-fg: #e8ecf6; --color-muted: #98a2b8; --color-border: #232a3d;
+      --color-card: #131829; --color-accent: #8b86ff; --color-accent-fg: #0c0f1a; --color-accent-soft: #1d2140;
+      --color-danger: #ff7b82; --color-danger-soft: #3a1a20; --color-success: #4cd694; --color-warn-soft: #3a2f10; --color-warn: #f5c451;
+      --shadow-md: 0 4px 14px rgb(0 0 0 / .4); --shadow-lg: 0 16px 40px rgb(0 0 0 / .5); color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --color-bg: #0c0f1a; --color-fg: #e8ecf6; --color-muted: #98a2b8; --color-border: #232a3d;
+    --color-card: #131829; --color-accent: #8b86ff; --color-accent-fg: #0c0f1a; --color-accent-soft: #1d2140;
+    --color-danger: #ff7b82; --color-danger-soft: #3a1a20; --color-success: #4cd694; --color-warn-soft: #3a2f10; --color-warn: #f5c451;
+    --shadow-md: 0 4px 14px rgb(0 0 0 / .4); --shadow-lg: 0 16px 40px rgb(0 0 0 / .5); color-scheme: dark;
+  }
+
+  /* ---------- base ---------- */
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: var(--color-bg); color: var(--color-fg); font: var(--text-md)/1.6 var(--font-sans); transition: background .2s, color .2s; }
+  a { color: var(--color-accent); text-decoration: none; } a:hover { text-decoration: underline; }
+  :focus-visible { outline: 3px solid var(--color-accent); outline-offset: 2px; border-radius: var(--radius-sm); }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 var(--space-4); }
+  h1,h2,h3 { line-height: 1.2; margin: 0; letter-spacing: -.02em; }
+
+  /* ---------- header ---------- */
+  header.site { position: sticky; top: 0; z-index: 10; background: color-mix(in srgb, var(--color-bg) 85%, transparent); backdrop-filter: blur(10px); border-bottom: 1px solid var(--color-border); }
+  header.site .wrap { display: flex; align-items: center; gap: var(--space-4); height: 64px; }
+  .logo { display: flex; align-items: center; gap: var(--space-2); font-weight: 800; font-size: var(--text-lg); color: var(--color-fg); letter-spacing: -.03em; }
+  .logo:hover { text-decoration: none; }
+  .logo .mark { width: 34px; height: 34px; border-radius: var(--radius-md); display: grid; place-items: center; font: 800 .8rem var(--font-sans); color: var(--color-accent-fg); background: linear-gradient(135deg, var(--color-accent), #a855f7); box-shadow: var(--shadow-md); }
+  nav.main { margin-left: auto; display: flex; gap: var(--space-1); align-items: center; }
+  nav.main a { color: var(--color-muted); padding: var(--space-2) var(--space-3); border-radius: var(--radius-full); font-size: var(--text-sm); font-weight: 600; }
+  nav.main a:hover { background: var(--color-accent-soft); color: var(--color-accent); text-decoration: none; }
+  .icon-btn { border: 1px solid var(--color-border); background: var(--color-card); color: var(--color-fg); width: 38px; height: 38px; border-radius: var(--radius-full); cursor: pointer; font-size: 1rem; box-shadow: var(--shadow-sm); }
+  .icon-btn:hover { border-color: var(--color-accent); }
+  @media (max-width: 720px) { nav.main a.hide-sm { display: none; } }
+
+  /* ---------- global currency selector ---------- */
+  .cur-wrap { position: relative; display: inline-flex; align-items: center; }
+  .cur-wrap::before { content: "🌐"; position: absolute; left: 11px; font-size: .9rem; pointer-events: none; }
+  .cur-wrap select { appearance: none; -webkit-appearance: none; border: 1px solid var(--color-border); background: var(--color-card); color: var(--color-fg); height: 38px; border-radius: var(--radius-full); padding: 0 var(--space-6) 0 34px; font: 700 var(--text-sm) var(--font-sans); cursor: pointer; box-shadow: var(--shadow-sm); max-width: 150px; }
+  .cur-wrap select:hover { border-color: var(--color-accent); }
+  .cur-wrap::after { content: "▾"; position: absolute; right: 12px; font-size: .75rem; color: var(--color-muted); pointer-events: none; }
+  .cur-chip { display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; font-size: var(--text-sm); color: var(--color-muted); background: var(--color-accent-soft); border-radius: var(--radius-full); padding: var(--space-2) var(--space-4); margin-bottom: var(--space-4); }
+  .cur-chip b { color: var(--color-fg); }
+  .linklike { border: 0; background: none; color: var(--color-accent); font: 700 var(--text-sm) var(--font-sans); cursor: pointer; padding: 0; text-decoration: underline; }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+  /* ---------- hero ---------- */
+  .hero { padding: var(--space-16) 0 var(--space-8); text-align: center; position: relative; }
+  .hero::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 380px; background: radial-gradient(60% 100% at 50% 0, var(--color-accent-soft), transparent); z-index: -1; }
+  .eyebrow { display: inline-block; font-size: var(--text-xs); font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--color-accent); background: var(--color-accent-soft); padding: var(--space-1) var(--space-3); border-radius: var(--radius-full); }
+  .hero h1 { font-size: clamp(2rem, 5vw, var(--text-4xl)); margin: var(--space-4) auto var(--space-3); max-width: 18ch; }
+  .hero h1 em { font-style: normal; background: linear-gradient(90deg, var(--color-accent), #a855f7); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .hero p { color: var(--color-muted); max-width: 52ch; margin: 0 auto var(--space-6); font-size: var(--text-lg); }
+  .search { display: flex; max-width: 520px; margin: 0 auto; background: var(--color-card); border: 1px solid var(--color-border); border-radius: var(--radius-full); box-shadow: var(--shadow-md); padding: var(--space-1); }
+  .search input { flex: 1; border: 0; background: transparent; color: var(--color-fg); font: inherit; padding: var(--space-2) var(--space-4); min-width: 0; }
+  .search input:focus { outline: none; } .search:focus-within { border-color: var(--color-accent); box-shadow: 0 0 0 4px var(--color-accent-soft); }
+  .btn { border: 0; cursor: pointer; font: 700 var(--text-sm) var(--font-sans); padding: var(--space-3) var(--space-6); border-radius: var(--radius-full); background: var(--color-accent); color: var(--color-accent-fg); transition: transform .1s, filter .15s; }
+  .btn:hover { filter: brightness(1.08); } .btn:active { transform: scale(.97); }
+  .btn.ghost { background: transparent; color: var(--color-accent); border: 1px solid var(--color-border); }
+  .stats { display: flex; justify-content: center; gap: var(--space-8); margin-top: var(--space-6); color: var(--color-muted); font-size: var(--text-sm); flex-wrap: wrap; }
+  .stats b { color: var(--color-fg); font-size: var(--text-lg); display: block; }
+
+  /* ---------- sections ---------- */
+  section.block { padding: var(--space-12) 0 var(--space-4); }
+  .section-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: var(--space-6); gap: var(--space-4); flex-wrap: wrap; }
+  .section-head h2 { font-size: var(--text-2xl); } .section-head p { margin: 0; color: var(--color-muted); }
+  .label { font-size: var(--text-xs); font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--color-muted); }
+
+  /* category cards */
+  .cats { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: var(--space-4); }
+  .cat { display: block; background: var(--color-card); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-6); color: var(--color-fg); box-shadow: var(--shadow-sm); transition: transform .15s, box-shadow .15s, border-color .15s; }
+  .cat:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); border-color: var(--color-accent); text-decoration: none; }
+  .cat .ico { width: 46px; height: 46px; border-radius: var(--radius-md); display: grid; place-items: center; font-size: 1.4rem; background: var(--color-accent-soft); margin-bottom: var(--space-4); }
+  .cat h3 { font-size: var(--text-md); margin-bottom: var(--space-1); } .cat span { color: var(--color-muted); font-size: var(--text-sm); }
+
+  /* ---------- calculator page ---------- */
+  .crumbs { font-size: var(--text-sm); color: var(--color-muted); margin: var(--space-6) 0 var(--space-2); }
+  .page-title { font-size: clamp(1.75rem, 4vw, var(--text-4xl)); }
+  .lede { color: var(--color-muted); font-size: var(--text-lg); margin: var(--space-2) 0 var(--space-6); max-width: 62ch; }
+  .calc-grid { display: grid; grid-template-columns: 1.05fr 1fr; gap: var(--space-6); align-items: stretch; }
+  @media (max-width: 860px) { .calc-grid { grid-template-columns: 1fr; } }
+  .panel { background: var(--color-card); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-6); box-shadow: var(--shadow-md); }
+  .field { margin-bottom: var(--space-4); }
+  .field label { display: flex; justify-content: space-between; font-size: var(--text-sm); font-weight: 600; margin-bottom: var(--space-2); }
+  .field label small { color: var(--color-muted); font-weight: 500; }
+  .input { display: flex; align-items: center; border: 1px solid var(--color-border); background: var(--color-bg); border-radius: var(--radius-md); transition: border-color .15s, box-shadow .15s; }
+  .input:focus-within { border-color: var(--color-accent); box-shadow: 0 0 0 4px var(--color-accent-soft); }
+  .input.invalid { border-color: var(--color-danger); box-shadow: 0 0 0 4px var(--color-danger-soft); }
+  .input span { padding: 0 var(--space-3); color: var(--color-muted); font-weight: 600; }
+  .input input { flex: 1; min-width: 0; border: 0; background: transparent; color: var(--color-fg); font: 600 var(--text-md) var(--font-mono); padding: var(--space-3) var(--space-3) var(--space-3) 0; }
+  .input input:focus { outline: none; }
+  .input input:first-child { padding-left: var(--space-3); }
+  input[type=range] { width: 100%; accent-color: var(--color-accent); margin-top: var(--space-2); }
+  .err { color: var(--color-danger); font-size: var(--text-sm); margin-top: var(--space-1); min-height: 1.2em; }
+  .row-actions { display: flex; gap: var(--space-2); margin-top: var(--space-2); }
+
+  .result { background: linear-gradient(160deg, var(--color-accent), #7c3aed); color: #fff; border: 0; position: relative; overflow: hidden; }
+  .result::after { content: ""; position: absolute; width: 260px; height: 260px; right: -90px; top: -90px; border-radius: 50%; background: rgb(255 255 255 / .1); }
+  .result .label { color: rgb(255 255 255 / .75); }
+  .big { font: 800 clamp(2.4rem, 6vw, 3.4rem)/1.1 var(--font-mono); letter-spacing: -.04em; margin: var(--space-2) 0 var(--space-1); transition: opacity .2s; }
+  .result.stale .big { opacity: .45; }
+  .stale-tag { display: none; font-size: var(--text-xs); font-weight: 700; background: var(--color-warn-soft); color: var(--color-warn); padding: 2px var(--space-3); border-radius: var(--radius-full); margin-left: var(--space-2); }
+  .result.stale .stale-tag { display: inline-block; }
+  .breakdown { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); margin-top: var(--space-6); position: relative; z-index: 1; }
+  .breakdown div { background: rgb(255 255 255 / .14); border-radius: var(--radius-md); padding: var(--space-3) var(--space-4); }
+  .breakdown b { display: block; font: 700 var(--text-lg) var(--font-mono); }
+  .bar { height: 10px; border-radius: var(--radius-full); background: rgb(255 255 255 / .25); overflow: hidden; margin-top: var(--space-6); position: relative; z-index: 1; display: flex; }
+  .bar i { display: block; height: 100%; background: #fff; transition: width .3s; }
+  .legend { display: flex; justify-content: space-between; font-size: var(--text-xs); margin-top: var(--space-2); color: rgb(255 255 255 / .85); position: relative; z-index: 1; }
+  .copy { margin-top: var(--space-4); position: relative; z-index: 1; background: rgb(255 255 255 / .18); color: #fff; border: 1px solid rgb(255 255 255 / .35); }
+
+  .ad { margin: var(--space-6) 0; border: 1px dashed var(--color-border); border-radius: var(--radius-md); min-height: 90px; display: grid; place-items: center; color: var(--color-muted); font-size: var(--text-xs); letter-spacing: .06em; text-transform: uppercase; }
+
+  .cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: var(--space-4); }
+  .card { background: var(--color-card); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-6); }
+  .card h3 { font-size: var(--text-md); margin-bottom: var(--space-2); }
+  .formula { font: var(--text-sm)/1.7 var(--font-mono); background: var(--color-bg); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: var(--space-3) var(--space-4); overflow-x: auto; }
+  .related { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-2); }
+  .related a { display: flex; justify-content: space-between; padding: var(--space-3) var(--space-4); border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-card); color: var(--color-fg); font-weight: 600; }
+  .related a:hover { border-color: var(--color-accent); text-decoration: none; } .related a::after { content: "→"; color: var(--color-accent); }
+  details { border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-card); padding: var(--space-3) var(--space-4); margin-bottom: var(--space-2); }
+  summary { cursor: pointer; font-weight: 600; } details p { color: var(--color-muted); margin: var(--space-2) 0 0; }
+
+  /* states gallery */
+  .states { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: var(--space-4); }
+  .state-note { font-size: var(--text-sm); color: var(--color-muted); margin: var(--space-2) 0 0; }
+  .chip { display: inline-flex; gap: var(--space-2); align-items: center; font-size: var(--text-xs); font-weight: 700; padding: var(--space-1) var(--space-3); border-radius: var(--radius-full); }
+  .chip.ok { background: var(--color-accent-soft); color: var(--color-accent); } .chip.bad { background: var(--color-danger-soft); color: var(--color-danger); } .chip.warn { background: var(--color-warn-soft); color: var(--color-warn); }
+  .disabled-field { opacity: .55; } .disabled-field .input { background: repeating-linear-gradient(45deg, transparent 0 6px, var(--color-border) 6px 7px); }
+  .e404 { text-align: center; padding: var(--space-12) var(--space-4); }
+  .e404 .code { font: 800 clamp(4rem, 14vw, 8rem)/1 var(--font-mono); background: linear-gradient(135deg, var(--color-accent), #a855f7); -webkit-background-clip: text; background-clip: text; color: transparent; }
+
+  footer.site { margin-top: var(--space-16); border-top: 1px solid var(--color-border); padding: var(--space-8) 0; color: var(--color-muted); font-size: var(--text-sm); }
+  footer.site .wrap { display: flex; justify-content: space-between; gap: var(--space-4); flex-wrap: wrap; }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; scroll-behavior: auto !important; } }
+</style>
+</head>
+<body>
+
+<header class="site">
+  <div class="wrap">
+    <a class="logo" href="#top"><span class="mark">O</span>Opus Calculator</a>
+    <nav class="main" aria-label="Main">
+      <a href="#categories" class="hide-sm">Categories</a>
+      <a href="#calculator">Mortgage</a>
+      <a href="#states" class="hide-sm">States</a>
+      <label class="cur-wrap"><span class="sr">Currency</span>
+        <select id="cur" aria-label="Currency">
+          <optgroup label="Popular">
+            <option value="USD">USD · $</option><option value="EUR">EUR · €</option><option value="GBP">GBP · £</option>
+            <option value="INR">INR · ₹</option><option value="CAD">CAD · C$</option><option value="AUD">AUD · A$</option>
+            <option value="JPY">JPY · ¥</option><option value="CNY">CNY · CN¥</option>
+          </optgroup>
+          <optgroup label="All currencies" id="curAll"></optgroup>
+        </select>
+      </label>
+      <button class="icon-btn" id="theme" type="button" aria-pressed="false" aria-label="Toggle dark mode" title="Toggle dark mode">🌓</button>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+  <!-- ============ HOME ============ -->
+  <section class="hero">
+    <div class="wrap">
+      <span class="eyebrow">Free calculators for everyday questions</span>
+      <h1>Fast, free answers for <em>every</em> number in your life.</h1>
+      <p>Mortgage, BMI, percentages, unit conversions and more. Real defaults, instant results, no sign-up.</p>
+      <form class="search" role="search" onsubmit="return false">
+        <input type="search" placeholder="Search 3,900+ calculators…" aria-label="Search calculators">
+        <button class="btn" type="submit">Search</button>
+      </form>
+      <div class="stats">
+        <div><b>3,900+</b>calculators</div><div><b>14</b>categories</div><div><b>0</b>sign-ups</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="categories">
+    <div class="wrap">
+      <div class="section-head"><h2>Browse by category</h2><p>Each hub links only to live calculators.</p></div>
+      <div class="cats">
+        <a class="cat" href="#calculator"><div class="ico">💰</div><h3>Finance</h3><span>Mortgage, loans, interest</span></a>
+        <a class="cat" href="#calculator"><div class="ico">🩺</div><h3>Health</h3><span>BMI, calories, hydration</span></a>
+        <a class="cat" href="#calculator"><div class="ico">➗</div><h3>Math</h3><span>Percentages, ratios, algebra</span></a>
+        <a class="cat" href="#calculator"><div class="ico">🏠</div><h3>Everyday life</h3><span>Age, dates, tips, time</span></a>
+        <a class="cat" href="#calculator"><div class="ico">⚡</div><h3>Physics</h3><span>Speed, energy, force</span></a>
+        <a class="cat" href="#calculator"><div class="ico">📐</div><h3>Units</h3><span>Length, weight, volume</span></a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CALCULATOR PAGE ============ -->
+  <section class="block" id="calculator">
+    <div class="wrap">
+      <div class="crumbs"><a href="#categories">Home</a> / <a href="#categories">Finance</a> / Mortgage Calculator</div>
+      <h1 class="page-title">Mortgage Calculator</h1>
+      <p class="lede">Estimate your monthly payment and see how much of what you pay is interest. Change any value and the answer updates instantly.</p>
+
+      <div class="calc-grid">
+        <form class="panel" id="form" onsubmit="return false" novalidate aria-label="Mortgage inputs">
+          <div class="cur-chip" id="curChip" role="status">
+            <span>🌐 Results in <b id="curName">US dollar ($)</b></span><span id="curWhy" style="color:var(--color-muted)"></span>
+            <button class="linklike" type="button" id="curChange">Change</button>
+          </div>
+          <div class="field">
+            <label for="amount">Loan amount <small id="amountHint">$50,000 – $2,000,000</small></label>
+            <div class="input" id="amountBox"><span id="amtSym">$</span><input id="amount" inputmode="decimal" value="300000" aria-describedby="amountErr"></div>
+            <input type="range" id="amountRange" min="50000" max="2000000" step="5000" value="300000" aria-label="Loan amount slider">
+            <div class="err" id="amountErr" role="alert"></div>
+          </div>
+          <div class="field">
+            <label for="rate">Interest rate <small>per year</small></label>
+            <div class="input" id="rateBox"><input id="rate" inputmode="decimal" value="6.5" aria-describedby="rateErr"><span>%</span></div>
+            <input type="range" id="rateRange" min="0.5" max="15" step="0.05" value="6.5" aria-label="Interest rate slider">
+            <div class="err" id="rateErr" role="alert"></div>
+          </div>
+          <div class="field">
+            <label for="term">Loan term <small>years</small></label>
+            <div class="input"><input id="term" inputmode="numeric" value="30"><span>yrs</span></div>
+            <div class="row-actions">
+              <button class="btn ghost" type="button" data-term="15">15</button>
+              <button class="btn ghost" type="button" data-term="20">20</button>
+              <button class="btn ghost" type="button" data-term="30">30</button>
+              <button class="btn ghost" type="button" id="reset" style="margin-left:auto">Reset</button>
+            </div>
+          </div>
+        </form>
+
+        <div class="panel result" id="result" aria-live="polite">
+          <div class="label">Monthly payment <span class="stale-tag">stale — fix inputs</span></div>
+          <div class="big" id="monthly">$1,896.20</div>
+          <div class="label" style="font-weight:500;text-transform:none;letter-spacing:0">principal &amp; interest, <span id="termLabel">30</span>-year fixed</div>
+          <div class="breakdown">
+            <div><span class="label">Total paid</span><b id="total">$682,633</b></div>
+            <div><span class="label">Total interest</span><b id="interest">$382,633</b></div>
+          </div>
+          <div class="bar" aria-hidden="true"><i id="barP" style="width:43.9%"></i></div>
+          <div class="legend"><span>● Principal <b id="pPct">43.9%</b></span><span>Interest <b id="iPct">56.1%</b></span></div>
+          <button class="btn copy" type="button" id="copy">Copy result</button>
+        </div>
+      </div>
+
+      <div class="ad" aria-label="Advertisement">Ad slot · lazy-loaded after the calculator is interactive</div>
+
+      <div class="cols">
+        <div class="card"><h3>Formula</h3><div class="formula">M = P · r / (1 − (1 + r)<sup>−n</sup>)<br>P = loan amount<br>r = annual rate ÷ 12<br>n = years × 12</div></div>
+        <div class="card"><h3>Worked example</h3><p style="margin:0;color:var(--color-muted)">$300,000 at 6.5% for 30 years: r = 0.005417, n = 360, so M = <b style="color:var(--color-fg)">$1,896.20</b> a month, with $382,633 paid as interest.</p></div>
+        <div class="card"><h3>Related calculators</h3>
+          <ul class="related"><li><a href="#">Loan payment calculator</a></li><li><a href="#">Compound interest calculator</a></li><li><a href="#">Refinance break-even</a></li></ul></div>
+      </div>
+
+      <div class="section-head" style="margin-top:var(--space-8)"><h2 style="font-size:var(--text-lg)">Frequently asked questions</h2></div>
+      <details><summary>Does this include taxes and insurance?</summary><p>No. It shows principal and interest only. Property tax, insurance and PMI are extra.</p></details>
+      <details><summary>How accurate is the result?</summary><p>The real build uses decimal.js for every figure. This demo uses plain JS numbers, only to show the look.</p></details>
+    </div>
+  </section>
+
+  <!-- ============ STATES ============ -->
+  <section class="block" id="states">
+    <div class="wrap">
+      <div class="section-head"><h2>Widget states</h2><p>Empty, error, stale, disabled (Prompt 13, step 4).</p></div>
+      <div class="states">
+        <div class="panel"><span class="chip ok">● Default</span>
+          <div class="field" style="margin-top:var(--space-4)"><label>Loan amount</label><div class="input"><span>$</span><input value="300000" readonly></div></div>
+          <p class="state-note">Defaults and the default answer are already in the page HTML.</p></div>
+        <div class="panel"><span class="chip bad">● Error</span>
+          <div class="field" style="margin-top:var(--space-4)"><label>Interest rate</label><div class="input invalid"><input value="-3" readonly><span>%</span></div><div class="err">Enter a rate between 0.5% and 15%.</div></div>
+          <p class="state-note">Inline message; the last valid result stays visible, dimmed and tagged “stale”.</p></div>
+        <div class="panel"><span class="chip warn">● Disabled</span>
+          <div class="field disabled-field" style="margin-top:var(--space-4)"><label>Loan amount <small>solve-for target</small></label><div class="input"><span>$</span><input value="—" disabled aria-disabled="true"></div></div>
+          <p class="state-note">Shown when the chosen “solve for” value cannot be computed yet.</p></div>
+      </div>
+
+      <div class="panel e404" style="margin-top:var(--space-6)">
+        <div class="code">404</div>
+        <h2 style="margin:var(--space-2) 0">That page isn't on the calendar.</h2>
+        <p style="color:var(--color-muted)">We do not have this one. Try search, or browse everything.</p>
+        <p><a class="btn" href="#top" style="display:inline-block">Browse all calculators</a></p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="site"><div class="wrap"><span>© Opus Calculator · free calculators for everyday questions</span><span>About · Methodology · Privacy · Contact</span></div></footer>
+
+<script>
+  /* Demo only: plain JS numbers. The real calculators use decimal.js. */
+  const $ = id => document.getElementById(id);
+  /* ---- currency (symbol and formatting only; the typed numbers are never converted) ---- */
+  const CURRENCIES = [
+    ["USD","$","US dollar"],["EUR","€","Euro"],["GBP","£","British pound"],["INR","₹","Indian rupee"],["CAD","C$","Canadian dollar"],
+    ["AUD","A$","Australian dollar"],["JPY","¥","Japanese yen",0],["CNY","CN¥","Chinese yuan"],["CHF","CHF ","Swiss franc"],["SEK","kr ","Swedish krona"],
+    ["NOK","kr ","Norwegian krone"],["DKK","kr ","Danish krone"],["NZD","NZ$","New Zealand dollar"],["SGD","S$","Singapore dollar"],["HKD","HK$","Hong Kong dollar"],
+    ["KRW","₩","South Korean won",0],["BRL","R$","Brazilian real"],["MXN","MX$","Mexican peso"],["ZAR","R ","South African rand"],["AED","AED ","UAE dirham"],
+    ["SAR","SAR ","Saudi riyal"],["TRY","₺","Turkish lira"],["PLN","zł ","Polish zloty"],["THB","฿","Thai baht"],["IDR","Rp ","Indonesian rupiah",0],
+    ["PHP","₱","Philippine peso"],["NGN","₦","Nigerian naira"],["PKR","Rs ","Pakistani rupee"],["EGP","E£","Egyptian pound"],["VND","₫","Vietnamese dong",0],["ILS","₪","Israeli shekel"],
+  ].map(([code, symbol, name, dp = 2]) => ({ code, symbol, name, dp }));
+  const byCode = Object.fromEntries(CURRENCIES.map(c => [c.code, c]));
+  const REGION = { US:"USD",GB:"GBP",IE:"EUR",DE:"EUR",FR:"EUR",IT:"EUR",ES:"EUR",NL:"EUR",PT:"EUR",AT:"EUR",BE:"EUR",FI:"EUR",GR:"EUR",CA:"CAD",AU:"AUD",NZ:"NZD",IN:"INR",JP:"JPY",CN:"CNY",CH:"CHF",SE:"SEK",NO:"NOK",DK:"DKK",BR:"BRL",MX:"MXN",ZA:"ZAR",SG:"SGD",HK:"HKD",KR:"KRW",AE:"AED",SA:"SAR",TR:"TRY",PL:"PLN",NG:"NGN",PK:"PKR",PH:"PHP",ID:"IDR",TH:"THB",VN:"VND",EG:"EGP",IL:"ILS" };
+  let cur = byCode.USD;
+  const money = (n, d = 2) => { const dp = Math.min(d, cur.dp); return cur.symbol + n.toLocaleString("en-US", { minimumFractionDigits: dp, maximumFractionDigits: dp }); };
+  const sym = () => cur.symbol.trim();
+  const DEFAULTS = { amount: 300000, rate: 6.5, term: 30 };
+  const rules = { amount: [50000, 2000000, () => `Enter an amount between ${money(50000, 0)} and ${money(2000000, 0)}.`], rate: [0.5, 15, () => "Enter a rate between 0.5% and 15%."] };
+
+  function validate(key) {
+    const v = parseFloat(String($(key).value).replace(/,/g, ""));
+    const [min, max, msg] = rules[key];
+    const bad = !isFinite(v) || v < min || v > max;
+    $(key + "Box").classList.toggle("invalid", bad);
+    $(key + "Err").textContent = bad ? msg() : "";
+    return bad ? null : v;
+  }
+  function calc() {
+    const P = validate("amount"), rate = validate("rate"), years = Math.min(40, Math.max(1, parseInt($("term").value, 10) || 0));
+    const result = $("result");
+    if (P === null || rate === null || !years) { result.classList.add("stale"); return; }   // keep last valid result, mark stale
+    result.classList.remove("stale");
+    const r = rate / 100 / 12, n = years * 12, m = P * r / (1 - Math.pow(1 + r, -n)), total = m * n, interest = total - P;
+    $("monthly").textContent = money(m, 2); $("total").textContent = money(total, 0); $("interest").textContent = money(interest, 0);
+    $("termLabel").textContent = years;
+    const pp = P / total * 100; $("barP").style.width = pp + "%"; $("pPct").textContent = pp.toFixed(1) + "%"; $("iPct").textContent = (100 - pp).toFixed(1) + "%";
+  }
+  const link = (num, range, fmt) => {
+    $(num).addEventListener("input", () => { const v = parseFloat($(num).value.replace(/,/g, "")); if (isFinite(v)) $(range).value = v; calc(); });
+    $(range).addEventListener("input", () => { $(num).value = $(range).value; calc(); });
+  };
+  link("amount", "amountRange"); link("rate", "rateRange");
+  $("term").addEventListener("input", calc);
+  document.querySelectorAll("[data-term]").forEach(b => b.addEventListener("click", () => { $("term").value = b.dataset.term; calc(); }));
+  $("reset").addEventListener("click", () => {
+    $("amount").value = $("amountRange").value = DEFAULTS.amount; $("rate").value = $("rateRange").value = DEFAULTS.rate; $("term").value = DEFAULTS.term; calc();
+  });
+  $("copy").addEventListener("click", async e => {
+    const text = `Monthly payment ${$("monthly").textContent} (${$("termLabel").textContent}-yr, ${$("rate").value}%, ${money(+$("amount").value, 0)}) — opuscalculator.com`;
+    try { await navigator.clipboard.writeText(text); } catch (_) {}
+    e.target.textContent = "Copied ✓"; setTimeout(() => e.target.textContent = "Copy result", 1500);
+  });
+
+  /* Currency choice. Order: what the visitor picked last time, else detected from their browser, else USD.
+     The page HTML always ships USD; this only re-formats after load. The real build can ask Cloudflare for the
+     visitor's country (/cdn-cgi/trace, no prompt, no cookie) and use browser language as the fallback shown here. */
+  const store = { get: k => { try { return localStorage.getItem(k); } catch (_) { return null; } }, set: (k, v) => { try { localStorage.setItem(k, v); } catch (_) {} } };
+  const all = $("curAll"); CURRENCIES.forEach(c => { const o = document.createElement("option"); o.value = c.code; o.textContent = `${c.code} · ${c.name}`; all.appendChild(o); });
+  function detect() {
+    const lang = navigator.language || "en-US", region = (lang.split("-")[1] || "").toUpperCase();
+    if (REGION[region]) return [REGION[region], `detected from your browser (${lang})`];
+    return ["USD", "default"];
+  }
+  function applyCurrency(code, why) {
+    cur = byCode[code] || byCode.USD; $("cur").value = cur.code;
+    $("curName").textContent = `${cur.name} (${sym()})`;
+    $("curWhy").textContent = why ? "· " + why : "";
+    $("amtSym").textContent = sym(); $("amountHint").textContent = `${money(50000, 0)} – ${money(2000000, 0)}`;
+    calc();
+  }
+  $("cur").addEventListener("change", e => { store.set("opus-currency", e.target.value); applyCurrency(e.target.value, "your choice"); });
+  $("curChange").addEventListener("click", () => $("cur").focus());
+  const saved = store.get("opus-currency");
+  if (saved && byCurrency(saved)) applyCurrency(saved, "your choice"); else { const [c, why] = detect(); applyCurrency(c, why); }
+  function byCurrency(c) { return !!byCode[c]; }
+
+  /* theme toggle: localStorage key opus-theme, default follows the system */
+  const root = document.documentElement;
+  const isDark = () => root.dataset.theme ? root.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+  const paint = () => { $("theme").setAttribute("aria-pressed", isDark()); $("theme").textContent = isDark() ? "☀️" : "🌙"; };
+  $("theme").addEventListener("click", () => {
+    const next = isDark() ? "light" : "dark"; root.dataset.theme = next;
+    try { localStorage.setItem("opus-theme", next); } catch (_) {}
+    paint();
+  });
+  paint();
+</script>
+</body>
+</html>

@@ -1,0 +1,47 @@
+---
+import StaticPage from '../layouts/StaticPage.astro';
+import { SITE } from '../config/site';
+---
+
+<StaticPage path="/contact/" h1="Contact Opus Calculator" updated="2026-11-23">
+  <p class="mt-6">
+    The best way to reach the site is email: <a href={`mailto:${SITE.email.general}`}>{SITE.email.general}</a>. There is no contact form, so nothing you type is
+    sent anywhere until you press send in your own email program.
+  </p>
+
+  <h2>What gets a reply</h2>
+  <ul class="mt-2 list-disc space-y-2 pl-6">
+    <li>
+      <strong>A result that looks wrong.</strong> Tell us the calculator, the exact numbers you typed, the answer you got and the answer you expected. A wrong
+      result is the most important thing we can fix, and corrections are logged as described in the <a href="/editorial-policy/">editorial policy</a>.
+    </li>
+    <li>
+      <strong>A formula or wording question,</strong> for example "why is this rounded this way". Questions about how a calculator works are answered and often
+      become a clearer explanation on the page.
+    </li>
+    <li>
+      <strong>An accessibility barrier.</strong> Write to <a href={`mailto:${SITE.email.accessibility}`}>{SITE.email.accessibility}</a>, as described in the
+      <a href="/accessibility/">accessibility statement</a>. We reply within {SITE.respondWithinBusinessDays} business days.
+    </li>
+    <li>
+      <strong>A copyright notice.</strong> Follow the steps on the <a href="/dmca/">DMCA page</a> and write to{' '}
+      <a href={`mailto:${SITE.email.dmca}`}>{SITE.email.dmca}</a>.
+    </li>
+    <li>
+      <strong>A privacy request</strong> to see, delete or move data about you. Use the general address and say "privacy request" in the subject. See the{' '}
+      <a href="/privacy/">privacy policy</a>.
+    </li>
+    <li>
+      <strong>A suggestion for a new calculator.</strong> We read every one. We cannot promise a date, because new pages are added in stages.
+    </li>
+  </ul>
+
+  <h2>What does not get a reply</h2>
+  <p>
+    We do not give personal financial, medical, legal or tax advice, so please do not send questions about your own situation. We also do not reply to offers of
+    paid links, guest posts or link exchanges.
+  </p>
+
+  <h2>How long it takes</h2>
+  <p>This is a small independent site. Corrections to a wrong result are handled first. Other messages usually get a reply within a few working days.</p>
+</StaticPage>

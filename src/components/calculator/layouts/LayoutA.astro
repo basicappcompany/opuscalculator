@@ -1,0 +1,69 @@
+---
+// Finance and health. Two columns on desktop: inputs left, results card right (the widget's "split"
+// variant). Below the fold: a "How this is calculated" accordion, a scenario comparison table and a
+// plain-English explanation. No calculator-specific logic: everything comes from the config.
+import type { CalculatorConfig } from '../../../lib/types';
+import type { LinkSet } from '../../../lib/linking';
+import type { ScenarioTable as ScenarioTableData } from '../../../lib/scenarios';
+import { splitIntro } from '../../../lib/text';
+import AdSlot from '../AdSlot.astro';
+import Disclaimer from '../../Disclaimer.astro';
+import FaqAccordion from '../FaqAccordion.astro';
+import RelatedCalculators from '../RelatedCalculators.astro';
+import ScenarioTable from '../ScenarioTable.astro';
+
+interface Props {
+  config: CalculatorConfig;
+  scenarios: ScenarioTableData | null;
+  related: LinkSet;
+}
+const { config, scenarios, related } = Astro.props;
+const { lede, rest } = splitIntro(config.intro);
+---
+
+<article>
+  <header class="mb-6 max-w-3xl">
+    <h1 class="text-3xl font-bold tracking-tight sm:text-4xl">{config.h1}</h1>
+    <p class="mt-3 text-lg leading-relaxed text-muted">{lede}</p>
+  </header>
+
+  <slot name="widget" />
+
+  <Disclaimer category={config.category} lastUpdated={config.lastUpdated} />
+
+  <AdSlot />
+
+  <section aria-labelledby="how-heading" class="mt-10">
+    <h2 id="how-heading" class="mb-3 text-xl font-bold">
+      How this is calculated
+    </h2>
+    <div class="divide-y divide-border rounded-lg border border-border bg-card">
+      <details class="p-4" open>
+        <summary class="cursor-pointer font-medium">The formula</summary>
+        <p class="mt-2 leading-relaxed text-muted">{config.formulaDescription}</p>
+      </details>
+      <details class="p-4">
+        <summary class="cursor-pointer font-medium">A worked example</summary>
+        <p class="mt-2 leading-relaxed text-muted">{config.workedExample}</p>
+      </details>
+    </div>
+  </section>
+
+  {scenarios && (
+    <ScenarioTable
+      table={scenarios}
+      heading="Compare scenarios"
+      intro="The same calculator run on a few common situations, so you can see how the result moves."
+    />
+  )}
+
+  {rest && (
+    <section aria-labelledby="plain-heading" class="prose-calc mt-10 max-w-3xl">
+      <h2 id="plain-heading">In plain English</h2>
+      <p>{rest}</p>
+    </section>
+  )}
+
+  <FaqAccordion faq={config.faq} />
+  <RelatedCalculators links={related} variant="grid" />
+</article>

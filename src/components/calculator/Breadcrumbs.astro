@@ -1,0 +1,28 @@
+---
+interface Crumb {
+  label: string;
+  /** Leave out for a crumb whose page is not published yet (rule 6) and for the current page. */
+  href?: string;
+}
+interface Props {
+  items: Crumb[];
+}
+const { items } = Astro.props;
+---
+
+<nav aria-label="Breadcrumb" class="mb-4 text-sm text-muted">
+  <ol class="flex flex-wrap items-center gap-x-2">
+    {items.map((item, i) => (
+      <li class="flex items-center gap-x-2">
+        {item.href ? (
+          <a href={item.href} class="underline hover:text-accent-strong">
+            {item.label}
+          </a>
+        ) : (
+          <span aria-current={i === items.length - 1 ? 'page' : undefined}>{item.label}</span>
+        )}
+        {i < items.length - 1 && <span aria-hidden="true">/</span>}
+      </li>
+    ))}
+  </ol>
+</nav>

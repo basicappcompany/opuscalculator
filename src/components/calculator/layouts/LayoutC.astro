@@ -1,0 +1,62 @@
+---
+// Everyday life, conversion, construction, food, sports and the rest. A compact input row and an
+// oversized result (the widget's "compact" variant), then a quick-reference table. The optional
+// gauge is not built yet.
+import type { CalculatorConfig } from '../../../lib/types';
+import type { LinkSet } from '../../../lib/linking';
+import type { ScenarioTable as ScenarioTableData } from '../../../lib/scenarios';
+import { splitIntro } from '../../../lib/text';
+import AdSlot from '../AdSlot.astro';
+import Disclaimer from '../../Disclaimer.astro';
+import FaqAccordion from '../FaqAccordion.astro';
+import RelatedCalculators from '../RelatedCalculators.astro';
+import ScenarioTable from '../ScenarioTable.astro';
+
+interface Props {
+  config: CalculatorConfig;
+  scenarios: ScenarioTableData | null;
+  related: LinkSet;
+}
+const { config, scenarios, related } = Astro.props;
+const { lede, rest } = splitIntro(config.intro);
+---
+
+<article class="mx-auto max-w-4xl">
+  <header class="mb-5 text-center">
+    <h1 class="text-3xl font-bold tracking-tight sm:text-4xl">{config.h1}</h1>
+    <p class="mx-auto mt-3 max-w-2xl text-lg leading-relaxed text-muted">{lede}</p>
+  </header>
+
+  <slot name="widget" />
+
+  <Disclaimer category={config.category} lastUpdated={config.lastUpdated} />
+
+  {scenarios && <ScenarioTable table={scenarios} heading="Quick reference" intro="Common values worked out for you." />}
+
+  <AdSlot />
+
+  {rest && (
+    <section aria-labelledby="about-heading" class="prose-calc mt-8 max-w-3xl">
+      <h2 id="about-heading">About this calculator</h2>
+      <p>{rest}</p>
+    </section>
+  )}
+
+  <div class="mt-8 grid gap-4 md:grid-cols-2">
+    <section aria-labelledby="formula-heading" class="rounded-lg border border-border bg-card p-4">
+      <h2 id="formula-heading" class="mb-2 text-lg font-bold">
+        How it works
+      </h2>
+      <p class="leading-relaxed text-muted">{config.formulaDescription}</p>
+    </section>
+    <section aria-labelledby="example-heading" class="rounded-lg border border-border bg-card p-4">
+      <h2 id="example-heading" class="mb-2 text-lg font-bold">
+        Worked example
+      </h2>
+      <p class="leading-relaxed text-muted">{config.workedExample}</p>
+    </section>
+  </div>
+
+  <FaqAccordion faq={config.faq} />
+  <RelatedCalculators links={related} variant="grid" />
+</article>

@@ -1,0 +1,69 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import JsonLd from '../../components/JsonLd.astro';
+import Breadcrumbs from '../../components/calculator/Breadcrumbs.astro';
+import CalculatorWidget from '../../components/calculator/CalculatorWidget';
+import LayoutA from '../../components/calculator/layouts/LayoutA.astro';
+import LayoutB from '../../components/calculator/layouts/LayoutB.astro';
+import LayoutC from '../../components/calculator/layouts/LayoutC.astro';
+import { CATEGORY_LABELS } from '../../lib/categories';
+import { hubPath } from '../../lib/hubs';
+import { WIDGET_VARIANT, layoutFor } from '../../lib/layout';
+import { getPublishableCalculators } from '../../lib/registry';
+import { linksFor } from '../../lib/linking';
+import { isPruned } from '../../lib/pruned';
+import { scenarioTable } from '../../lib/scenarios';
+import { assertUniqueMeta, calculatorJsonLd } from '../../lib/seo';
+import { toWidgetSpec } from '../../lib/widget-spec';
+import type { CalculatorConfig } from '../../lib/types';
+
+// Published calculators only (CLAUDE.md rule 1): anything else has no route, so it 404s.
+export function getStaticPaths() {
+  const published = getPublishableCalculators();
+  assertUniqueMeta(published); // fails the build if two pages share a title, description or h1
+  return published.map((config) => ({ params: { slug: config.slug }, props: { config } }));
+}
+
+interface Props {
+  config: CalculatorConfig;
+}
+const { config } = Astro.props;
+
+const layout = layoutFor(config.category);
+const spec = toWidgetSpec(config);
+const scenarios = scenarioTable(config);
+const related = linksFor(config);
+const path = `/calculators/${config.slug}/`;
+const crumbs = [
+  { label: 'Home', href: '/' },
+  // Links to the hub only when that hub renders (rule 6).
+  { label: CATEGORY_LABELS[config.category], href: hubPath(config.category) },
+  { label: config.h1 },
+];
+const jsonLd = calculatorJsonLd(config, path, crumbs);
+---
+
+<BaseLayout
+  title={config.title}
+  description={config.metaDescription}
+  path={path}
+  noindex={!config.publish || isPruned(config.slug)}
+  ogType="article"
+  skipTo={{ href: '#calculator', label: 'Skip to calculator' }}
+>
+  <JsonLd slot="head" data={jsonLd} />
+  <Breadcrumbs items={crumbs} />
+  {layout === 'A' ? (
+    <LayoutA config={config} scenarios={scenarios} related={related}>
+      <CalculatorWidget slot="widget" client:load spec={spec} variant={WIDGET_VARIANT[layout]} />
+    </LayoutA>
+  ) : layout === 'B' ? (
+    <LayoutB config={config} related={related}>
+      <CalculatorWidget slot="widget" client:load spec={spec} variant={WIDGET_VARIANT[layout]} />
+    </LayoutB>
+  ) : (
+    <LayoutC config={config} scenarios={scenarios} related={related}>
+      <CalculatorWidget slot="widget" client:load spec={spec} variant={WIDGET_VARIANT[layout]} />
+    </LayoutC>
+  )}
+</BaseLayout>

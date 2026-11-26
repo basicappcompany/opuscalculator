@@ -1,0 +1,68 @@
+---
+import StaticPage from '../layouts/StaticPage.astro';
+import { SITE } from '../config/site';
+---
+
+<StaticPage path="/about/" h1="About Opus Calculator" updated="2026-11-23">
+  <p class="mt-6">
+    Opus Calculator is a collection of free online calculators for money, health, maths, dates, everyday life and more. It is run by an independent owner, not
+    by a bank, a lender, a clinic or a software vendor, and it has no accounts, no paywall and no sign-up.
+  </p>
+
+  <h2>Why it exists</h2>
+  <p>
+    Most calculator sites bury the answer under pop-ups, ask for an email address, or give a number with no way to check it. This site starts from the opposite
+    idea: you should see the answer straight away, see the formula that produced it, and be able to follow a worked example by hand. If a result looks wrong to
+    you, the page gives you enough to check it yourself, and a way to tell us.
+  </p>
+
+  <h2>Calculators for everyday questions</h2>
+  <p>
+    The promise is simple: there should be a calculator for whatever you need to work out, whether that is a mortgage payment on a Monday, a tip on a Friday
+    night, the days until a deadline, or a conversion while you cook. The catalogue grows in stages. A new batch is published only after the previous batch has
+    proved useful to readers and been accepted by search engines, so the site grows by earning its pages instead of flooding the web with them. You can read how
+    in the <a href="/editorial-policy/">editorial policy</a>.
+  </p>
+
+  <h2>How the calculators are built and tested</h2>
+  <ul class="mt-2 list-disc space-y-2 pl-6">
+    <li>
+      <strong>Exact arithmetic.</strong> Money, percentages and ratios are calculated with a decimal library, never with the floating-point numbers that cause
+      results like 0.1 + 0.2 = 0.30000000000000004. Amounts are rounded the way a lender or a shop rounds them.
+    </li>
+    <li>
+      <strong>Tested against known answers.</strong> Every calculator has tests with answers worked out independently. The mortgage and loan calculators are
+      compared with a separate month-by-month repayment schedule and must match to the cent.
+    </li>
+    <li>
+      <strong>The answer is in the page.</strong> The default result is part of the page itself, so it appears even if scripts are slow or blocked. Scripts only
+      add live recalculation as you type.
+    </li>
+    <li>
+      <strong>A quality gate.</strong> A calculator cannot be published unless it passes automatic checks for original explanatory text, enough questions and
+      answers, a worked example, and results that depend only on what you type.
+    </li>
+    <li>
+      <strong>Reviewed where it matters.</strong> Health, finance, construction, food and science calculators carry a disclaimer and a "last reviewed" line. The
+      editorial policy explains who reviews them and what is not yet reviewed.
+    </li>
+  </ul>
+
+  <h2>What this site is not</h2>
+  <p>
+    The calculators are tools for learning and estimating. They are not financial, medical, legal or engineering advice, and nothing here replaces a qualified
+    professional. See the <a href="/terms/">terms</a> for the full wording.
+  </p>
+
+  <h2>Money and privacy</h2>
+  <p>
+    The site is paid for by one advertisement per page, which never changes a result: read <a href="/how-we-make-money/">how we make money</a>. The site uses
+    cookie-free analytics and stores nothing about you on its own servers: read the <a href="/privacy/">privacy policy</a>.
+  </p>
+
+  <h2>Contact</h2>
+  <p>
+    Questions, corrections and ideas are welcome at <a href={`mailto:${SITE.email.general}`}>{SITE.email.general}</a>. See the{' '}
+    <a href="/contact/">contact page</a> for what gets a reply.
+  </p>
+</StaticPage>

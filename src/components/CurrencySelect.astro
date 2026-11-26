@@ -1,0 +1,53 @@
+---
+import { CURRENCIES, POPULAR_CURRENCIES, currencyOptionLabel, getCurrency, type Currency } from '../lib/currency';
+
+// Popular currencies first, then the full list. A plain <select>: accessible, native on phones, no extra JavaScript weight.
+const popular = POPULAR_CURRENCIES.map((code) => getCurrency(code)).filter((c): c is Currency => c !== undefined);
+const others = CURRENCIES.filter((c) => !(POPULAR_CURRENCIES as readonly string[]).includes(c.code));
+---
+
+<label class="inline-flex items-center gap-2 text-sm">
+  <span class="hidden text-muted sm:inline">Currency</span>
+  <select
+    id="currency-select"
+    aria-label="Currency"
+    class="h-9 w-28 sm:w-36 rounded-md border border-border-strong bg-card px-2 text-sm font-medium text-fg focus-visible:outline-2"
+  >
+    <optgroup label="Popular">
+      {popular.map((c) => (
+        <option value={c.code} selected={c.code === 'USD'}>
+          {currencyOptionLabel(c)}
+        </option>
+      ))}
+    </optgroup>
+    <optgroup label="All currencies">
+      {others.map((c) => (
+        <option value={c.code}>{`${c.code} · ${c.symbol.trim()} ${c.name}`}</option>
+      ))}
+    </optgroup>
+  </select>
+</label>
+
+<script>
+  import { OPEN_SELECTOR_EVENT, chooseCurrency, getCurrencyState, onCurrencyChange, startCurrency } from '../lib/currency-store';
+
+  const select = document.getElementById('currency-select') as HTMLSelectElement | null;
+  if (select) {
+    const sync = () => {
+      select.value = getCurrencyState().code;
+    };
+    select.addEventListener('change', () => chooseCurrency(select.value));
+    onCurrencyChange(sync);
+    // The widget's "Change" link asks for the picker to open.
+    window.addEventListener(OPEN_SELECTOR_EVENT, () => {
+      select.focus();
+      try {
+        select.showPicker?.();
+      } catch {
+        /* needs a user gesture in some browsers: focus is enough */
+      }
+    });
+    startCurrency();
+    sync();
+  }
+</script>

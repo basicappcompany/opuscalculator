@@ -1,0 +1,123 @@
+---
+import StaticPage from '../layouts/StaticPage.astro';
+import { SITE } from '../config/site';
+---
+
+<StaticPage path="/privacy/" h1="Privacy policy" updated={SITE.legalUpdated}>
+  <p class="mt-6">
+    The short version: Opus Calculator does not have accounts, does not ask for your name or email, does not use tracking cookies of its own, and does not send
+    the numbers you type into a calculator anywhere. This page explains the details, including advertising.
+  </p>
+
+  <h2>What the calculators do with your numbers</h2>
+  <p>
+    Calculators run in your browser. The values you type are used on your device to work out the result and are not sent to our servers or to anyone else, and
+    they are not stored once you leave the page.
+  </p>
+
+  <h2>Analytics</h2>
+  <p>
+    To learn which pages are useful, the site uses a cookie-free analytics service, <a href="https://plausible.io/data-policy">Plausible Analytics</a>. It sets
+    no cookies, does not follow you between sites, and keeps no personal data about you. It records only aggregate facts about a visit, such as the page
+    address, the page you came from, the type of browser and device, and your country (worked out from your connection without storing your IP address). Nobody
+    can be identified from it. You can read the provider's own explanation in its <a href="https://plausible.io/data-policy">data policy</a>.
+  </p>
+
+  <h2>What is stored on your device</h2>
+  <p>
+    The site stores a few small settings in your browser's own storage. They stay on your device, are never sent to us, and you can clear them at any time in
+    your browser settings.
+  </p>
+  <ul class="mt-2 list-disc space-y-2 pl-6">
+    <li>
+      <strong>Currency choice</strong> (<code>opus-currency</code>): the currency you chose for showing results, so it follows you from page to page.
+    </li>
+    <li>
+      <strong>Detected currency</strong> (<code>opus-currency-detected</code>, kept only for the length of the browser tab): the currency suggested for your
+      country, so we do not have to work it out again on every page.
+    </li>
+    <li>
+      <strong>Colour theme</strong> (<code>opus-theme</code>): light or dark, if you use the switch in the page header.
+    </li>
+  </ul>
+  <p>These are not cookies and are not used to identify or track you.</p>
+
+  <h2>How a default currency is chosen</h2>
+  <p>
+    So that results can show a familiar currency, the page looks at the language setting of your browser and asks the hosting provider, Cloudflare, which
+    country your connection appears to come from. The request goes to this site's own domain and returns only a country code. We do not save it on any server.
+    If you choose a currency yourself, your choice is used instead.
+  </p>
+
+  <h2>Hosting and server logs</h2>
+  <p>
+    The site is delivered by Cloudflare. Like any web host, Cloudflare processes technical data needed to deliver pages and keep the site secure, such as your
+    IP address, the page address you asked for (including anything after a question mark in the address), your browser type and the time. These logs are kept by
+    Cloudflare under its own retention rules and are not used by this site to identify visitors. See Cloudflare's
+    <a href="https://www.cloudflare.com/privacypolicy/">privacy policy</a>. The site currently has no search box that sends what you type to a server; if one is
+    added, this page will say so.
+  </p>
+
+  <h2>Advertising</h2>
+  <p>
+    The site is paid for by one advertisement per page (see <a href="/how-we-make-money/">how we make money</a> and the{' '}
+    <a href="/ad-disclosure/">ad disclosure</a>). The ad slot is set up to use Google AdSense. Until advertising is switched on for the site, no advertising
+    cookies are set. When it is on, Google and its partners may set cookies or use similar identifiers on your device to show and measure ads:
+  </p>
+  <ul class="mt-2 list-disc space-y-2 pl-6">
+    <li>
+      <strong>NID</strong>: a Google cookie that stores a unique identifier used to remember your preferences and to personalise ads.
+    </li>
+    <li>
+      <strong>ANID</strong>: a Google advertising cookie used to personalise ads based on your past activity.
+    </li>
+  </ul>
+  <p>
+    Google changes the exact cookies and lifetimes over time, so read Google's current explanation in{' '}
+    <a href="https://policies.google.com/technologies/cookies">how Google uses cookies</a>. You can turn off personalised ads at{' '}
+    <a href="https://adssettings.google.com">adssettings.google.com</a>, or opt out of interest-based advertising from many providers at{' '}
+    <a href="https://optout.aboutads.info">optout.aboutads.info</a> (United States) and
+    <a href="https://www.youronlinechoices.com">youronlinechoices.com</a> (Europe). Where the law requires your consent before ad cookies are used, such as in
+    the European Economic Area and the United Kingdom, the site will ask for it before loading the ad, and will update this page when that is in place. Ads
+    never receive what you type into a calculator.
+  </p>
+
+  <h2>Your rights</h2>
+  <p>
+    Because the site holds almost no personal data about you, there is usually nothing to find or delete, but you have these rights and we will honour them.
+  </p>
+  <ul class="mt-2 list-disc space-y-2 pl-6">
+    <li>
+      <strong>Everywhere:</strong> ask what we hold about you, and ask for it to be corrected or deleted.
+    </li>
+    <li>
+      <strong>In the European Economic Area, the United Kingdom and similar regions (GDPR):</strong> access, rectification, erasure, restriction, portability (a
+      copy in a common format), objection to processing, withdrawal of consent, and the right to complain to your data protection authority.
+    </li>
+    <li>
+      <strong>In California (CCPA and CPRA):</strong> the right to know, delete and correct, and to opt out of the sale or sharing of personal information. The
+      site does not sell personal information.
+    </li>
+  </ul>
+  <p>
+    To use a right, write to <a href={`mailto:${SITE.email.general}`}>{SITE.email.general}</a> with "privacy request" in the subject. We reply within 30 days.
+    We may need to confirm it is you before acting on a request.
+  </p>
+
+  <h2>Children</h2>
+  <p>
+    The site is a general-audience tool and is not directed at children under 13 (or under 16 where local law sets that age). We do not knowingly collect data
+    from children.
+  </p>
+
+  <h2>Changes to this policy</h2>
+  <p>
+    If the way the site handles data changes, for example when advertising is switched on or analytics changes, this page is updated first and the date above
+    changes.
+  </p>
+
+  <h2>Contact</h2>
+  <p>
+    Privacy questions: <a href={`mailto:${SITE.email.general}`}>{SITE.email.general}</a>.
+  </p>
+</StaticPage>
