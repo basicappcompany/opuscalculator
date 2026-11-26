@@ -1,6 +1,6 @@
 # Rollback
 
-Three rollbacks: a deploy, a cohort, and a Cloudflare Access policy change. Each lists the exact steps and how to confirm it worked. These steps were written from the Cloudflare and GitHub documentation; **none has been run yet because the site is not deployed** (tracker 9.6 and 9.7). The first time you roll back, for real or as a drill, check the steps against the dashboard and correct this file.
+Three rollbacks: a deploy, a cohort, and a Cloudflare Access policy change. Each lists the exact steps and how to confirm it worked. These steps were written from the Cloudflare and GitHub documentation; **none has been run yet** (tracker 19.6; the site was deployed on 27 Nov and only one production deployment exists, so there is nothing to roll back to yet). The first time you roll back, for real or as a drill, check the steps against the dashboard and correct this file.
 
 Practise once before launch: roll the site back one deployment and forward again, and confirm both states with `curl -I https://opuscalculator.com/` and `npm run audit:prelaunch -- --base https://opuscalculator.com`.
 

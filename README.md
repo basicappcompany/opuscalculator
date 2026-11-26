@@ -4,7 +4,7 @@ Free calculators for everyday questions. A programmatic-SEO calculator site: sta
 
 ## Stack
 
-Astro 7 (static output), TypeScript strict, Tailwind CSS 4 via `@tailwindcss/vite`, one React island (`@astrojs/react`), `decimal.js` for all numeric output, `zod` for input validation, KaTeX rendered at build time, Vitest, and Playwright with axe-core for browser tests. TypeScript is version 7. Hosting target is Cloudflare Pages (not connected yet). Needs Node 22.23.4 or newer. The repository is public.
+Astro 7 (static output), TypeScript strict, Tailwind CSS 4 via `@tailwindcss/vite`, one React island (`@astrojs/react`), `decimal.js` for all numeric output, `zod` for input validation, KaTeX rendered at build time, Vitest, and Playwright with axe-core for browser tests. TypeScript is version 7. Hosting is Cloudflare Pages (live at https://opuscalculator.com since 27 Nov 2026). Needs Node 22.23.4 or newer. The repository is public.
 
 ## Commands
 
@@ -103,7 +103,7 @@ Pruning and deleting: `npm run prune -- --write` records pages for noindex (they
 
 ## Deploying to Cloudflare Pages
 
-Not connected yet (tracker items 9.6 and 9.7). When you create the Pages project from the GitHub repository, use exactly these settings:
+Connected and live since 27 Nov 2026 (tracker items 9.6 to 9.10). The project `opuscalculator` uses exactly these settings; use them again if you ever recreate it:
 
 | Setting                | Value                                                                                                                                                                                                |
 | :--------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -119,6 +119,8 @@ Not connected yet (tracker items 9.6 and 9.7). When you create the Pages project
 - `SITE_URL` appears in the plan's Appendix A but nothing reads it: the address is written in `astro.config.mjs` and `src/lib/seo.ts`. Setting it on Cloudflare does nothing.
 - Cloudflare bills build minutes. With the repository public you can turn off preview builds for branches other than `main` (Settings, Builds, Branch control) if you do not use previews.
 - Do not set `PUBLIC_AD_SCRIPT_URL` until an ad network is chosen (12.11) and `/privacy` and the CSP are updated for it.
+- The custom domain is `opuscalculator.com` (`CNAME @` to `opuscalculator.pages.dev`). `www.opuscalculator.com` is not a Pages domain: a Cloudflare Single Redirect rule named "Redirect www to apex" (request URL `*://www.*`, target `https://${2}`, 301) sends every www request to the same path on the apex, and the `www` DNS record must stay proxied for the rule to apply.
+- If a page shows old registrar or parking content after a DNS change, purge the cache (Caching, Configuration, Purge Everything). Cloudflare cached the parking `robots.txt` for 4 hours on 27 Nov.
 
 After the first deploy, run the checks that cannot run before it: `npm run audit:prelaunch -- --base https://opuscalculator.com --sample 20`, and `curl -I` on `/`, on a made-up URL (must be 404) and on `/admin/` (must be 401 or the Access login).
 
