@@ -1,6 +1,7 @@
 ---
 import '../styles/global.css';
 import CurrencySelect from '../components/CurrencySelect.astro';
+import SkinPicker from '../components/SkinPicker.astro';
 import ThemeToggle from '../components/ThemeToggle.astro';
 import { CATEGORY_LABELS } from '../lib/categories';
 import { getRenderableHubs, hubPathFor } from '../lib/hubs';
@@ -37,8 +38,23 @@ const plausibleDomain = import.meta.env.PLAUSIBLE_DOMAIN as string | undefined;
     <!-- Set the saved theme before the CSS paints, so a dark-mode visitor never sees a flash of light. -->
     <script is:inline>
       try {
+        var d = document.documentElement;
         var t = localStorage.getItem('opus-theme');
-        if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t);
+        if (t === 'light' || t === 'dark') d.setAttribute('data-theme', t);
+        // Design preview (owner only): any page opened with ?design turns it on, ?design=off turns it off. Nothing changes for a
+        // visitor who never uses it. The skins stylesheet is written in here, before first paint, so there is no flash.
+        if (location.search.indexOf('design=off') > -1) localStorage.removeItem('opus-design');
+        else if (/[?&]design(=|&|$)/.test(location.search)) localStorage.setItem('opus-design', '1');
+        if (localStorage.getItem('opus-design') === '1') {
+          d.setAttribute('data-design', '1');
+          var s = localStorage.getItem('opus-skin');
+          var l = localStorage.getItem('opus-layout');
+          var n = localStorage.getItem('opus-density');
+          if (s) d.setAttribute('data-skin', s);
+          if (l && l !== 'standard') d.setAttribute('data-layout', l);
+          if (n && n !== 'comfortable') d.setAttribute('data-density', n);
+          document.write('<link rel="stylesheet" href="/skins.css">');
+        }
       } catch (e) {}
     </script>
     <title>{title}</title>
@@ -84,6 +100,7 @@ const plausibleDomain = import.meta.env.PLAUSIBLE_DOMAIN as string | undefined;
         <span class="ml-auto hidden text-sm text-muted lg:inline">Free calculators for everyday questions</span>
         <div class="ml-auto flex items-center gap-2 lg:ml-0">
           <CurrencySelect />
+          <SkinPicker />
           <ThemeToggle />
         </div>
       </div>

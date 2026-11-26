@@ -1,0 +1,195 @@
+---
+// The design preview picker (owner request, 27 Nov): every design option on the real site. Only a hidden button is in the page
+// HTML; the dialog is built in the browser, from /skins.json, the first time the button is pressed, and the button only appears
+// in preview mode (any page opened with ?design; see the script in BaseLayout). So a normal visitor's page carries none of it:
+// no skin names, no extra markup, no extra requests.
+// It sets data-skin, data-layout and data-density on <html>; /skins.css does the rest. Native radio buttons, so keyboard, focus
+// and screen-reader behaviour come from the browser.
+const quiet =
+  'inline-flex h-9 cursor-pointer items-center justify-center rounded-md border border-border-strong bg-card px-3 text-sm font-medium text-fg transition-colors hover:bg-accent-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent';
+---
+
+<button type="button" hidden data-design-button aria-haspopup="dialog" class={`${quiet} gap-2`}>
+  <svg
+    width="16"
+    height="16"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    aria-hidden="true"
+  >
+    <circle cx="13.5" cy="6.5" r="1" fill="currentColor"></circle>
+    <circle cx="17.5" cy="10.5" r="1" fill="currentColor"></circle>
+    <circle cx="8.5" cy="7.5" r="1" fill="currentColor"></circle>
+    <circle cx="6.5" cy="12.5" r="1" fill="currentColor"></circle>
+    <path d="M12 22a1 1 0 0 1 0-20 10 9 0 0 1 10 9 5 5 0 0 1-5 5h-2.25a1.75 1.75 0 0 0-1.4 2.8l.3.4a1.75 1.75 0 0 1-1.4 2.8z"></path>
+  </svg>
+  Design
+</button>
+
+<script>
+  interface SkinInfo {
+    id: string;
+    name: string;
+    mood: string;
+    layout: string;
+  }
+
+  // Tailwind finds these class names here, so the dialog is styled like the rest of the site.
+  const DIALOG =
+    'opus-dialog m-auto w-full max-w-3xl overflow-hidden rounded-lg border border-border bg-card p-0 text-fg shadow-md backdrop:bg-fg/40 backdrop:backdrop-blur-sm max-sm:mb-0 max-sm:max-w-none max-sm:rounded-b-none';
+  const GHOST =
+    'inline-flex size-9 cursor-pointer items-center justify-center rounded-md text-muted transition-colors hover:bg-accent-soft hover:text-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent';
+  const QUIET =
+    'inline-flex h-9 cursor-pointer items-center justify-center rounded-md border border-border-strong bg-card px-3 text-sm font-medium text-fg transition-colors hover:bg-accent-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent';
+  const CARD =
+    'flex h-full cursor-pointer flex-col gap-2 rounded-md border border-border bg-card p-3 text-sm transition-colors hover:bg-accent-soft peer-checked:border-accent peer-checked:bg-accent-soft peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-accent';
+
+  const LAYOUTS = [
+    ['standard', 'Standard', 'The current arrangement.'],
+    ['instrument', 'Instrument', 'Inputs and result side by side, the result stays in view, tabular numerals, the result pinned on a phone.'],
+    ['focus', 'Focus', 'One narrow column, the answer as large as it will go.'],
+  ];
+  const DENSITIES = [
+    ['comfortable', 'Comfortable', 'The current spacing.'],
+    ['compact', 'Compact', 'Tighter spacing and smaller text.'],
+  ];
+
+  const root = document.documentElement;
+  const button = document.querySelector<HTMLButtonElement>('[data-design-button]');
+
+  const get = (key: string): string => {
+    try {
+      return localStorage.getItem(key) ?? '';
+    } catch {
+      return '';
+    }
+  };
+  const set = (key: string, value: string) => {
+    try {
+      if (value) localStorage.setItem(key, value);
+      else localStorage.removeItem(key);
+    } catch {
+      /* private mode: the choice lasts for this page only */
+    }
+  };
+  const esc = (s: string): string => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+
+  const radioCard = (name: string, value: string, title: string, note: string, extra = '', swatch = '') =>
+    `<label class="relative block"><input type="radio" name="${name}" value="${esc(value)}" ${extra} class="peer sr-only" /><span class="${CARD}">${swatch}<span class="font-bold">${esc(title)}</span><span class="text-muted">${esc(note)}</span></span></label>`;
+
+  let dialog: HTMLDialogElement | null = null;
+
+  async function build(): Promise<HTMLDialogElement> {
+    let skins: SkinInfo[] = [];
+    try {
+      skins = (await (await fetch('/skins.json')).json()) as SkinInfo[];
+    } catch {
+      /* offline: the layout and density choices still work */
+    }
+    const d = document.createElement('dialog');
+    d.className = DIALOG;
+    d.setAttribute('aria-labelledby', 'design-title');
+    d.innerHTML = `
+      <div class="flex items-start justify-between gap-3 border-b border-border px-5 py-4">
+        <div>
+          <h2 id="design-title" class="text-lg font-bold">Design preview</h2>
+          <p class="text-sm text-muted">Applies to the whole site on this device only. Visitors still see the current look.</p>
+        </div>
+        <button type="button" class="${GHOST}" data-close aria-label="Close">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+      <div class="max-h-[75vh] space-y-5 overflow-y-auto px-5 py-4">
+        <fieldset>
+          <legend class="mb-2 text-sm font-bold">Skin (${skins.length + 1} options)</legend>
+          <div class="grid grid-cols-2 gap-2 sm:grid-cols-3">
+            ${radioCard('skin', '', 'Classic', 'The current look.')}
+            ${skins.map((s) => radioCard('skin', s.id, s.name, s.mood, `data-layout-hint="${esc(s.layout)}"`, `<span class="opus-swatch" data-swatch="${esc(s.id)}" aria-hidden="true"><i></i><i></i><i></i><i></i></span>`)).join('')}
+          </div>
+        </fieldset>
+        <div class="grid gap-5 sm:grid-cols-2">
+          <fieldset><legend class="mb-2 text-sm font-bold">Layout</legend><div class="grid gap-2">${LAYOUTS.map(([v, t, n]) => radioCard('layout', v, t, n)).join('')}</div></fieldset>
+          <fieldset><legend class="mb-2 text-sm font-bold">Density</legend><div class="grid gap-2">${DENSITIES.map(([v, t, n]) => radioCard('density', v, t, n)).join('')}</div></fieldset>
+        </div>
+      </div>
+      <div class="flex flex-wrap items-center justify-between gap-2 border-t border-border px-5 py-3">
+        <button type="button" class="${QUIET}" data-design-reset>Back to the current look</button>
+        <button type="button" class="${QUIET}" data-design-off>Turn the preview off</button>
+      </div>
+      <p role="status" aria-live="polite" class="sr-only" data-design-status></p>`;
+    document.body.appendChild(d);
+
+    const radios = (name: string) => [...d.querySelectorAll<HTMLInputElement>(`input[name="${name}"]`)];
+    const status = d.querySelector<HTMLElement>('[data-design-status]');
+    const sync = () => {
+      for (const [name, key, fallback] of [
+        ['skin', 'opus-skin', ''],
+        ['layout', 'opus-layout', 'standard'],
+        ['density', 'opus-density', 'comfortable'],
+      ] as const) {
+        const value = get(key) || fallback;
+        radios(name).forEach((r) => (r.checked = r.value === value));
+      }
+    };
+    sync();
+
+    const apply = (attr: string, key: string, value: string, neutral: string) => {
+      if (value && value !== neutral) root.setAttribute(attr, value);
+      else root.removeAttribute(attr);
+      set(key, value === neutral ? '' : value);
+    };
+    radios('skin').forEach((r) =>
+      r.addEventListener('change', () => {
+        apply('data-skin', 'opus-skin', r.value, '');
+        // A skin can suggest the layout it was designed with (Instrument does); the visitor can change it straight after.
+        const hint = r.dataset.layoutHint;
+        if (hint) {
+          apply('data-layout', 'opus-layout', hint, 'standard');
+          radios('layout').forEach((l) => (l.checked = l.value === hint));
+        }
+        if (status)
+          status.textContent = r.value ? `Skin ${r.closest('label')?.querySelector('.font-bold')?.textContent ?? r.value} applied` : 'Back to the current skin';
+      }),
+    );
+    radios('layout').forEach((r) => r.addEventListener('change', () => apply('data-layout', 'opus-layout', r.value, 'standard')));
+    radios('density').forEach((r) => r.addEventListener('change', () => apply('data-density', 'opus-density', r.value, 'comfortable')));
+
+    d.addEventListener('close', () => root.classList.remove('overflow-hidden'));
+    d.addEventListener('click', (event) => {
+      if (event.target === d) d.close();
+    });
+    d.querySelector('[data-close]')?.addEventListener('click', () => d.close());
+    d.querySelector('[data-design-reset]')?.addEventListener('click', () => {
+      for (const [attr, key] of [
+        ['data-skin', 'opus-skin'],
+        ['data-layout', 'opus-layout'],
+        ['data-density', 'opus-density'],
+      ]) {
+        root.removeAttribute(attr);
+        set(key, '');
+      }
+      sync();
+      if (status) status.textContent = 'Back to the current look';
+    });
+    d.querySelector('[data-design-off]')?.addEventListener('click', () => {
+      for (const key of ['opus-design', 'opus-skin', 'opus-layout', 'opus-density']) set(key, '');
+      for (const attr of ['data-design', 'data-skin', 'data-layout', 'data-density']) root.removeAttribute(attr);
+      d.close();
+      if (button) button.hidden = true;
+    });
+    return d;
+  }
+
+  if (button && root.dataset.design) {
+    button.hidden = false;
+    button.addEventListener('click', async () => {
+      dialog ??= await build();
+      dialog.showModal();
+      root.classList.add('overflow-hidden');
+    });
+  }
+</script>
