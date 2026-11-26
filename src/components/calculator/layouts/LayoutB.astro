@@ -9,6 +9,7 @@ import AdSlot from '../AdSlot.astro';
 import CalculatorToolbar from '../CalculatorToolbar.astro';
 import Disclaimer from '../../Disclaimer.astro';
 import FaqAccordion from '../FaqAccordion.astro';
+import References from '../References.astro';
 import RelatedCalculators from '../RelatedCalculators.astro';
 
 interface Props {
@@ -78,6 +79,7 @@ const formulaHtml = config.formulaLatex ? renderLatex(config.formulaLatex, true)
       )}
 
       <AdSlot />
+      <References config={config} />
       <FaqAccordion faq={config.faq} />
     </div>
 

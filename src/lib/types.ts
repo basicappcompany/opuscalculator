@@ -74,6 +74,19 @@ export interface CatalogAudit {
   reason: string;
 }
 
+/** A source a calculator relies on (plan/PROMPT 19, "Methodology and references"). */
+export interface Reference {
+  title: string;
+  /** Who published it: an agency, a standards body, a journal or a book's publisher. */
+  publisher: string;
+  /** https only, a stable address (a DOI or an agency page), no tracking query. */
+  url: string;
+  /** ISO date the source was last opened and read. */
+  accessed: string;
+  /** What in this calculator the source backs: the formula, a constant, a category boundary. */
+  supports: string;
+}
+
 export interface CalculatorConfig {
   slug: string;
   category: Category;
@@ -122,6 +135,17 @@ export interface CalculatorConfig {
    */
   scenarios?: Scenario[];
   workedExample: string;
+  /**
+   * What the method takes for granted, one plain sentence each (for example "A year is 365.25 days"). Shown with the method
+   * on the page (item 20.12). Optional: absent means the page says nothing beyond the formula.
+   */
+  assumptions?: string[];
+  /**
+   * The sources the formula really uses, each one opened and read before it was added (item 20.12). Never invented: the
+   * quality gate checks the shape, `npm run refs:check` checks the links load. A calculator published without any needs an
+   * entry in src/config/references-pending.ts, and that list can only shrink.
+   */
+  references?: Reference[];
   faq: FaqEntry[];
   relatedSlugs: string[];
   /** ISO date, e.g. 2026-11-22. */

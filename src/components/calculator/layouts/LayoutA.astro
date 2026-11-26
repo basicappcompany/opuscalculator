@@ -10,6 +10,7 @@ import AdSlot from '../AdSlot.astro';
 import CalculatorToolbar from '../CalculatorToolbar.astro';
 import Disclaimer from '../../Disclaimer.astro';
 import FaqAccordion from '../FaqAccordion.astro';
+import References from '../References.astro';
 import RelatedCalculators from '../RelatedCalculators.astro';
 import ScenarioTable from '../ScenarioTable.astro';
 
@@ -67,6 +68,7 @@ const { lede, rest } = splitIntro(config.intro);
     </section>
   )}
 
+  <References config={config} />
   <FaqAccordion faq={config.faq} />
   <RelatedCalculators links={related} variant="grid" />
 </article>

@@ -104,6 +104,17 @@ export function calculatorJsonLd(config: CalculatorConfig, path: string, crumbs:
         offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
 
         // Structured answers for AI search (item 20.8): the same text the page shows, named so an answer engine can quote it.
+        // The sources the formula uses (item 20.12), when the calculator has them.
+        ...(config.references?.length
+          ? {
+              citation: config.references.map((r) => ({
+                '@type': 'CreativeWork',
+                name: r.title,
+                url: r.url,
+                publisher: { '@type': 'Organization', name: r.publisher },
+              })),
+            }
+          : {}),
         hasPart: [
           { '@type': 'WebPageElement', '@id': `${url}#method`, name: 'How it is calculated', text: config.formulaDescription },
           { '@type': 'WebPageElement', '@id': `${url}#example`, name: 'Worked example', text: config.workedExample },

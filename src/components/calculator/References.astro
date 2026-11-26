@@ -1,0 +1,53 @@
+---
+// "Sources and method" (plan/PROMPT 19, item 20.12): the assumptions, how rounding works and the sources the formula uses.
+// In the server HTML, never a tooltip or a script. Renders nothing for a calculator that has neither assumptions nor
+// sources yet (the pending list in src/config/references-pending.ts), so no page shows an empty heading.
+import type { CalculatorConfig } from '../../lib/types';
+
+interface Props {
+  config: CalculatorConfig;
+}
+const { config } = Astro.props;
+const refs = config.references ?? [];
+const assumptions = config.assumptions ?? [];
+const longDate = (iso: string) => new Date(`${iso}T00:00:00Z`).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
+---
+
+{(refs.length > 0 || assumptions.length > 0) && (
+  <section aria-labelledby="sources-heading" class="mt-10" data-sources>
+    <h2 id="sources-heading" class="mb-3 text-xl font-bold">
+      Sources and method
+    </h2>
+    <div class="rounded-lg border border-border bg-card p-4 leading-relaxed text-muted">
+      <p>Every number is worked out with exact decimal arithmetic, not floating point, and rounded only when it is shown.</p>
+      {assumptions.length > 0 && (
+        <>
+          <h3 class="mt-4 font-bold text-fg">What this assumes</h3>
+          <ul class="mt-1 list-disc space-y-1 pl-6">
+            {assumptions.map((a) => (
+              <li>{a}</li>
+            ))}
+          </ul>
+        </>
+      )}
+      {refs.length > 0 && (
+        <>
+          <h3 class="mt-4 font-bold text-fg">Sources</h3>
+          <ul class="mt-1 list-disc space-y-2 pl-6">
+            {refs.map((r) => (
+              <li>
+                <a href={r.url} rel="noopener" target="_blank" class="font-medium text-accent underline underline-offset-2" data-reference>
+                  {r.title}
+                </a>
+                <span>
+                  {' '}
+                  · {r.publisher}, checked <time datetime={r.accessed}>{longDate(r.accessed)}</time>. {r.supports}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+    </div>
+  </section>
+)}
