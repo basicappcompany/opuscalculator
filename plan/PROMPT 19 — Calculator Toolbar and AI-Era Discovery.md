@@ -37,6 +37,17 @@ Deferred, tracked as item 20.9: thumbs up and down with a public count, and a fe
 - `robots.txt` names the AI crawlers deliberately and says what each may fetch.
 - Cloudflare's Markdown for Agents and AI Crawl Control are dashboard settings for the owner.
 
+## Methodology and references (item 20.12)
+
+Every calculator, the simple ones too, shows a "How this works" block in the HTML and lists the references it relies on.
+
+- Block: the formula in plain words, the assumptions, how rounding works (decimal.js), and the reference values the tests check.
+- Reference: title, publisher, URL, date checked. Also in the JSON-LD.
+- Never invent a source. Cite only what the formula really uses. Open and read each source before it goes in. Link and describe; do not copy their text.
+- The quality gate fails a calculator with no methodology or no reference; a build check flags a reference URL that does not load.
+- Scale by family: unit conversions cite NIST's SI guidance, loan maths a standard finance text, BMI the WHO and CDC definitions. YMYL categories first.
+- Order: schema, gate and rendering in one pull request; then the 5 live calculators; then category by category.
+
 ## Enforcement
 
 - `verify-dist` fails the build if any built calculator page lacks any of the required controls (it looks for each control's stable `data-toolbar` hook) or if `/embed/<slug>/` is missing for a published calculator.
