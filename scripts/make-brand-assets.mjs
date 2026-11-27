@@ -31,40 +31,55 @@ const og = resolve('public/og-template.png');
 shot(pathToFileURL(resolve('scripts/brand/og-template.html')).href, og, 1200, 630);
 console.log('wrote', og);
 
-// The favicon.ico is drawn directly (a gradient rounded square with the letter "O" in a 3x5 pixel font), because a
-// headless browser will not render a 48-pixel window. Modern browsers use favicon.svg; the ICO is the fallback.
+// The favicon.ico is drawn directly from the same shapes as public/logo-mark.svg (a gradient ring with three nodes), 4x4
+// supersampled, because a headless browser will not render a 48-pixel window. Modern browsers use favicon.svg; the ICO is the fallback.
 import { crc32, deflateSync } from 'node:zlib';
 
 const SIZE = 48;
-const GLYPHS = { O: ['111', '101', '101', '101', '111'] };
-const from = [0x4f, 0x46, 0xe5];
-const to = [0x7c, 0x3a, 0xed];
-const radius = 10;
+const hex = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
+const stops = [hex('#ff4fa3'), hex('#7a5cff'), hex('#1fb6ff')];
+const ringColour = (t) => {
+  const p = Math.min(Math.max(t, 0), 1) * 2;
+  const i = Math.min(Math.floor(p), 1);
+  return stops[i].map((c, k) => c + (stops[i + 1][k] - c) * (p - i));
+};
+const dots = [
+  [52, 32, 7, hex('#ffb020')],
+  [22, 49.3, 7, hex('#12c2b0')],
+  [22, 14.7, 7, hex('#ff4fa3')],
+];
+// Colour and coverage of one point in the 64-unit logo space, or null when it is empty.
+const sample = (x, y) => {
+  for (const [cx, cy, r, c] of dots) if ((x - cx) ** 2 + (y - cy) ** 2 <= r * r) return c;
+  const d = Math.hypot(x - 32, y - 32);
+  if (Math.abs(d - 20) <= 2.5) return ringColour((x + y) / 128);
+  return null;
+};
 const rgba = Buffer.alloc(SIZE * SIZE * 4);
-const inside = (x, y) => {
-  const cx = Math.min(Math.max(x, radius), SIZE - 1 - radius);
-  const cy = Math.min(Math.max(y, radius), SIZE - 1 - radius);
-  return (x - cx) ** 2 + (y - cy) ** 2 <= radius ** 2;
-};
-const scale = 5;
-const textW = 3 * scale;
-const x0 = Math.floor((SIZE - textW) / 2);
-const y0 = Math.floor((SIZE - 5 * scale) / 2);
-const isInk = (x, y) => {
-  const rx = x - x0;
-  const ry = y - y0;
-  if (rx < 0 || ry < 0 || ry >= 5 * scale) return false;
-  if (rx >= textW) return false;
-  return GLYPHS.O[Math.floor(ry / scale)][Math.floor(rx / scale)] === '1';
-};
+const SS = 4;
 for (let y = 0; y < SIZE; y++) {
   for (let x = 0; x < SIZE; x++) {
+    let r = 0,
+      g = 0,
+      b = 0,
+      n = 0;
+    for (let sy = 0; sy < SS; sy++)
+      for (let sx = 0; sx < SS; sx++) {
+        const c = sample(((x + (sx + 0.5) / SS) * 64) / SIZE, ((y + (sy + 0.5) / SS) * 64) / SIZE);
+        if (c) {
+          r += c[0];
+          g += c[1];
+          b += c[2];
+          n++;
+        }
+      }
     const o = (y * SIZE + x) * 4;
-    if (!inside(x, y)) continue; // transparent corner
-    const t = (x + y) / (2 * (SIZE - 1));
-    const ink = isInk(x, y);
-    for (let c = 0; c < 3; c++) rgba[o + c] = ink ? 255 : Math.round(from[c] + (to[c] - from[c]) * t);
-    rgba[o + 3] = 255;
+    if (n) {
+      rgba[o] = Math.round(r / n);
+      rgba[o + 1] = Math.round(g / n);
+      rgba[o + 2] = Math.round(b / n);
+      rgba[o + 3] = Math.round((n / (SS * SS)) * 255);
+    }
   }
 }
 const raw = Buffer.alloc((SIZE * 4 + 1) * SIZE); // each scanline starts with filter byte 0

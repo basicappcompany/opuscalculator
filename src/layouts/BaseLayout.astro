@@ -79,6 +79,8 @@ const plausibleDomain = import.meta.env.PLAUSIBLE_DOMAIN as string | undefined;
     <meta name="color-scheme" content="light dark" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" href="/favicon.ico" />
+    <link rel="preload" href="/fonts/hanken-grotesk-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/newsreader-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
     <meta name="generator" content={Astro.generator} />
     <slot name="head" />
     {plausibleDomain && <script is:inline defer data-domain={plausibleDomain} src="https://plausible.io/js/script.js"></script>}
@@ -90,13 +92,8 @@ const plausibleDomain = import.meta.env.PLAUSIBLE_DOMAIN as string | undefined;
     <header class="sticky top-0 z-10 border-b border-border bg-bg/85 backdrop-blur">
       <div class="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3">
         <a href="/" class="flex items-center gap-2 text-lg font-bold tracking-tight text-fg">
-          <span
-            aria-hidden="true"
-            class="grid size-9 place-items-center rounded-md bg-linear-to-br from-accent to-accent-2 text-lg font-extrabold text-accent-fg shadow-md"
-          >
-            O
-          </span>
-          <span class="sr-only sm:not-sr-only">Opus Calculator</span>
+          <img src="/logo-mark.svg" alt="" aria-hidden="true" width="36" height="36" class="size-9" />
+          <span class="sr-only font-display text-xl font-semibold tracking-tight sm:not-sr-only">Opus Calculator</span>
         </a>
         <nav aria-label="Main" class="ml-4 hidden items-center gap-4 text-sm font-medium lg:flex">
           <a class="text-muted hover:text-fg" href="/agents/">
