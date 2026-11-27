@@ -359,9 +359,11 @@ export default function CalculatorWidget({ spec, variant = 'stack' }: Calculator
               onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => setField(input.name, e.target.value),
             };
             return (
-              <div key={input.name}>
-                <Label htmlFor={common.id}>{labelOf(input.label)}</Label>
-                <div className="mt-1 flex gap-2">
+              <div key={input.name} className={cn(!compact && 'ledger-row')}>
+                <Label htmlFor={common.id} className={cn(!compact && 'ledger-label')}>
+                  {labelOf(input.label)}
+                </Label>
+                <div className={cn('flex gap-2', compact ? 'mt-1' : 'ledger-field')}>
                   {input.type === 'select' ? (
                     <Select {...common}>
                       {input.unitOptions?.map((o) => (
@@ -487,16 +489,19 @@ export default function CalculatorWidget({ spec, variant = 'stack' }: Calculator
           {headline.map((o) => (
             <div key={o.name}>
               <dt className="result-muted text-sm font-medium">{o.label}</dt>
-              <dd className={cn('result-value font-extrabold', compact ? 'text-5xl sm:text-6xl' : 'text-3xl sm:text-4xl')}>{results[o.name]}</dd>
+              <dd className={cn('result-value', compact ? 'text-5xl sm:text-6xl' : 'text-3xl sm:text-4xl')}>{results[o.name]}</dd>
             </div>
           ))}
           {rest.map((o) => (
-            <div key={o.name} className={cn('flex flex-wrap justify-between gap-x-4 border-t border-hero-fg/25 pt-3', compact && 'justify-center')}>
+            <div key={o.name} className={cn('flex flex-wrap justify-between gap-x-4 border-t border-dashed border-border pt-3', compact && 'justify-center')}>
               <dt className="result-muted text-sm">{o.label}</dt>
-              <dd className="result-value text-base font-semibold">{results[o.name]}</dd>
+              <dd className="result-value text-lg">{results[o.name]}</dd>
             </div>
           ))}
         </dl>
+        <p className="result-exact">
+          <span aria-hidden="true" className="result-dot" /> Exact decimal arithmetic
+        </p>
         {/* The actions belong with the answer. Dark glass buttons keep white text readable on every result gradient. */}
         <div className={cn('mt-5 flex flex-wrap gap-2', compact && 'justify-center')}>
           <button type="button" className="result-btn" aria-label="Copy results" onClick={() => void copy()}>

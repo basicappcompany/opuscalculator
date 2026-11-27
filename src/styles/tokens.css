@@ -9,26 +9,26 @@
  */
 @theme static {
   /* Colour. Contrast: text on bg and card is at least 4.5:1, UI outlines at least 3:1 (see tests/design-tokens.test.ts). */
-  --color-bg: #f4f5f8;
-  --color-fg: #0b1020;
-  --color-muted: #4f586c;
+  --color-bg: #f6f5f8;
+  --color-fg: #15111c;
+  --color-muted: #564f63;
   --color-card: #ffffff;
-  --color-border: #dadee8;
+  --color-border: #e0dce6;
   /* Outlines of controls (inputs, selects, buttons): at least 3:1 against the card, as WCAG 1.4.11 requires. */
-  --color-border-strong: #737d93;
-  --color-accent: #2340c4;
+  --color-border-strong: #7b7488;
+  --color-accent: #b8175f;
   --color-accent-fg: #ffffff;
-  --color-accent-strong: #182c8f;
-  --color-accent-soft: #eaeeff;
-  --color-accent-2: #6a4cff;
+  --color-accent-strong: #8c0e47;
+  --color-accent-soft: #fdeaf3;
+  --color-accent-2: #7a5cff;
   --color-danger: #c2262e;
   --color-danger-soft: #fdecee;
   --color-success: #0f7a4a;
   --color-warn: #8a5a00;
   --color-warn-soft: #fff6e0;
   /* The result card keeps one gradient and white text in both themes, so its contrast never depends on the theme. */
-  --color-hero-from: #0d1330;
-  --color-hero-to: #1b2a6b;
+  --color-hero-from: #1b1028;
+  --color-hero-to: #321448;
   --color-hero-fg: #ffffff;
 
   /* Type scale: six named steps. Other Tailwind sizes (text-xl, text-3xl, ...) keep their defaults. */
@@ -74,24 +74,24 @@
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
-    --color-bg: #090c15;
-    --color-fg: #e9ecf4;
-    --color-muted: #a0a8bb;
-    --color-card: #111625;
-    --color-border: #2a3248;
-    --color-border-strong: #7a859f;
-    --color-accent: #8ea6ff;
-    --color-accent-fg: #090c15;
-    --color-accent-strong: #c3d0ff;
-    --color-accent-soft: #171f45;
+    --color-bg: #0d0b12;
+    --color-fg: #efeaf5;
+    --color-muted: #aaa3b8;
+    --color-card: #16121e;
+    --color-border: #2f2a3b;
+    --color-border-strong: #857d96;
+    --color-accent: #ff6fb0;
+    --color-accent-fg: #0d0b12;
+    --color-accent-strong: #ffb3d6;
+    --color-accent-soft: #2a1427;
     --color-accent-2: #a893ff;
     --color-danger: #ff8a90;
     --color-danger-soft: #3a1a20;
     --color-success: #4cd694;
     --color-warn: #f5c451;
     --color-warn-soft: #3a2f10;
-    --color-hero-from: #121a45;
-    --color-hero-to: #222f78;
+    --color-hero-from: #2a1238;
+    --color-hero-to: #3d1a52;
     --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.4);
     --shadow-md: 0 4px 14px rgb(0 0 0 / 0.4);
     --shadow-lg: 0 16px 40px rgb(0 0 0 / 0.5);
@@ -100,24 +100,24 @@
 }
 
 :root[data-theme='dark'] {
-  --color-bg: #090c15;
-  --color-fg: #e9ecf4;
-  --color-muted: #a0a8bb;
-  --color-card: #111625;
-  --color-border: #2a3248;
-  --color-border-strong: #7a859f;
-  --color-accent: #8ea6ff;
-  --color-accent-fg: #090c15;
-  --color-accent-strong: #c3d0ff;
-  --color-accent-soft: #171f45;
+  --color-bg: #0d0b12;
+  --color-fg: #efeaf5;
+  --color-muted: #aaa3b8;
+  --color-card: #16121e;
+  --color-border: #2f2a3b;
+  --color-border-strong: #857d96;
+  --color-accent: #ff6fb0;
+  --color-accent-fg: #0d0b12;
+  --color-accent-strong: #ffb3d6;
+  --color-accent-soft: #2a1427;
   --color-accent-2: #a893ff;
   --color-danger: #ff8a90;
   --color-danger-soft: #3a1a20;
   --color-success: #4cd694;
   --color-warn: #f5c451;
   --color-warn-soft: #3a2f10;
-  --color-hero-from: #121a45;
-  --color-hero-to: #222f78;
+  --color-hero-from: #2a1238;
+  --color-hero-to: #3d1a52;
   --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.4);
   --shadow-md: 0 4px 14px rgb(0 0 0 / 0.4);
   --shadow-lg: 0 16px 40px rgb(0 0 0 / 0.5);
