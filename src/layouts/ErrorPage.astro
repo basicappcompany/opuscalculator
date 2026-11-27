@@ -17,7 +17,7 @@ const hubs = getRenderableHubs();
 
 <BaseLayout title={title} description="This page could not be shown. Browse calculators from the home page." path={path} noindex>
   <section class="mx-auto max-w-2xl rounded-lg border border-border bg-card px-6 py-12 text-center shadow-md">
-    <p class="gradient-text font-mono text-7xl font-extrabold leading-none sm:text-8xl">{code}</p>
+    <p class="font-display text-accent text-7xl font-medium leading-none sm:text-8xl">{code}</p>
     <h1 class="mt-4 text-2xl font-bold tracking-tight">{heading}</h1>
     <div class="mx-auto mt-3 max-w-prose leading-relaxed text-muted">
       <slot />

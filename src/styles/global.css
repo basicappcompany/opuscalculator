@@ -1,6 +1,22 @@
 @import 'tailwindcss';
 @import './tokens.css';
 
+/* Self-hosted variable fonts (SIL OFL, licences in public/fonts): Newsreader for headings and results, Hanken Grotesk for text. */
+@font-face {
+  font-family: 'Newsreader Variable';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 200 800;
+  src: url('/fonts/newsreader-latin-wght-normal.woff2') format('woff2-variations');
+}
+@font-face {
+  font-family: 'Hanken Grotesk Variable';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url('/fonts/hanken-grotesk-latin-wght-normal.woff2') format('woff2-variations');
+}
+
 /* Every colour, size and radius below comes from tokens.css. */
 
 html {
@@ -8,6 +24,18 @@ html {
   background: var(--color-bg);
   font-family: var(--font-sans);
   scroll-behavior: smooth;
+}
+html {
+  font-feature-settings: 'kern', 'liga';
+  -webkit-font-smoothing: antialiased;
+}
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  font-weight: 500;
+  letter-spacing: -0.015em;
+  text-wrap: balance;
 }
 body {
   min-height: 100vh;
@@ -62,14 +90,13 @@ body {
   background: linear-gradient(160deg, var(--color-hero-from), var(--color-hero-to));
   box-shadow: var(--shadow-md);
 }
+/* A fine strip in the logo's colours along the top edge: the only decoration on the card. */
 .result-card::after {
   content: '';
   position: absolute;
-  inset: auto -4rem 4rem auto;
-  width: 14rem;
-  height: 14rem;
-  border-radius: 50%;
-  background: rgb(255 255 255 / 0.08);
+  inset: 0 0 auto 0;
+  height: 3px;
+  background: linear-gradient(90deg, #ff4fa3, #7a5cff, #1fb6ff);
   pointer-events: none;
 }
 .result-card > * {
@@ -80,8 +107,10 @@ body {
   color: rgb(255 255 255 / 0.85);
 }
 .result-card .result-value {
-  font-family: var(--font-mono);
-  letter-spacing: -0.03em;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-variant-numeric: lining-nums tabular-nums;
+  letter-spacing: -0.02em;
   transition: opacity 0.2s;
 }
 /* An invalid input: keep the last valid result, dim it, and tag it stale. */
