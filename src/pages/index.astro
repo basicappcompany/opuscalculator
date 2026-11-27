@@ -3,6 +3,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import { CATEGORY_LABELS } from '../lib/categories';
 import { getRenderableHubs, hubPathFor } from '../lib/hubs';
 import { getCalculatorsByCategory, getPublishableCalculators } from '../lib/registry';
+import CopyField from '../components/CopyField.astro';
 import { MCP_SETUP, MCP_URL } from '../lib/toolbar';
 
 // Only hubs that render are linked (CLAUDE.md rule 6).
@@ -93,13 +94,8 @@ const start = getPublishableCalculators(1).sort((a, b) => (a.slug < b.slug ? -1 
     <p class="mt-2 max-w-3xl text-muted">
       A read-only MCP server runs the same decimal.js functions as these pages, so an assistant returns the exact number and cites the page. No account, no key.
     </p>
-    <label for="home-mcp" class="mt-4 block text-sm font-medium">
-      MCP server address
-    </label>
-    <input id="home-mcp" readonly value={MCP_URL} class="mt-1 block w-full max-w-xl rounded-md border border-border-strong bg-bg px-3 py-2 font-mono text-sm" />
-    <p class="mt-3 text-sm text-muted">
-      Claude Code: <code class="font-mono">{MCP_SETUP.claudeCode}</code>
-    </p>
+    <CopyField id="home-mcp" label="MCP server address" value={MCP_URL} copyLabel="Copy address" />
+    <CopyField id="home-mcp-cmd" label="Claude Code, one command" value={MCP_SETUP.claudeCode} />
     <p class="mt-3 text-sm">
       <a class="font-medium text-accent-strong underline underline-offset-2" href="/agents/">
         Set-up for other clients, llms.txt and the JSON index

@@ -29,6 +29,17 @@ test('the agents page explains the MCP set-up and is linked from the footer', as
   await page.getByRole('contentinfo').getByRole('link', { name: 'For AI agents' }).click();
   await expect(page).toHaveURL(/\/agents\//);
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Opus Calculator for AI agents');
-  await expect(page.getByText('claude mcp add --transport http opus-calculator https://opuscalculator.com/mcp')).toBeVisible();
+  await expect(page.getByLabel('Claude Code, one command')).toHaveValue('claude mcp add --transport http opus-calculator https://opuscalculator.com/mcp');
   await expectNoAxeViolations(page);
+});
+
+test('the MCP address can be copied from the home page and from /agents', async ({ page, context }) => {
+  await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+  for (const path of ['/', '/agents/']) {
+    await page.goto(path);
+    const button = page.locator('[data-copy-for$="-mcp"]');
+    await button.click();
+    await expect(button).toHaveText('Copied');
+    expect(await page.evaluate(() => navigator.clipboard.readText())).toBe('https://opuscalculator.com/mcp');
+  }
 });

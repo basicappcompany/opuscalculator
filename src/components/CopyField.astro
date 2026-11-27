@@ -1,0 +1,63 @@
+---
+/**
+ * A read-only value with a Copy button: the MCP address, the Claude Code command and the mcpServers JSON on the home
+ * page and /agents. The value is in the HTML, so it can be selected without JavaScript; the button needs the clipboard.
+ */
+interface Props {
+  id: string;
+  label: string;
+  value: string;
+  multiline?: boolean;
+  copyLabel?: string;
+}
+const { id, label, value, multiline = false, copyLabel = 'Copy' } = Astro.props;
+const field = 'block w-full min-w-0 rounded-md border border-border-strong bg-card px-3 py-2 font-mono text-sm text-fg';
+---
+
+<div class="mt-4 max-w-2xl" data-copyfield>
+  <label for={id} class="block text-sm font-medium">
+    {label}
+  </label>
+  <div class="mt-1 flex items-start gap-2">
+    {multiline ? (
+      <textarea id={id} readonly rows={value.split('\n').length} class={field}>{value}</textarea>
+    ) : (
+      <input id={id} readonly value={value} class={field} />
+    )}
+    <button
+      type="button"
+      data-copy-for={id}
+      class="inline-flex h-11 shrink-0 cursor-pointer items-center rounded-md border border-border-strong bg-card px-4 text-sm font-semibold text-fg hover:bg-accent-soft"
+    >
+      <span data-label>{copyLabel}</span>
+    </button>
+  </div>
+  <p class="sr-only" role="status" data-copy-status></p>
+</div>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-copyfield]').forEach((box) => {
+    const button = box.querySelector<HTMLButtonElement>('[data-copy-for]');
+    const source = box.querySelector<HTMLInputElement | HTMLTextAreaElement>('input, textarea');
+    const status = box.querySelector<HTMLElement>('[data-copy-status]');
+    const label = button?.querySelector<HTMLElement>('[data-label]');
+    if (!button || !source || !label) return;
+    const original = label.textContent ?? 'Copy';
+    button.addEventListener('click', async () => {
+      let done = 'Copied';
+      try {
+        await navigator.clipboard.writeText(source.value);
+      } catch {
+        source.focus();
+        source.select(); // clipboard blocked: leave the text selected so Ctrl+C works
+        done = 'Press Ctrl+C';
+      }
+      label.textContent = done;
+      if (status) status.textContent = done === 'Copied' ? 'Copied to the clipboard' : 'Selected, press Ctrl+C to copy';
+      setTimeout(() => {
+        label.textContent = original;
+        if (status) status.textContent = '';
+      }, 2000);
+    });
+  });
+</script>

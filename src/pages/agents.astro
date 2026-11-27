@@ -1,5 +1,6 @@
 ---
 import StaticPage from '../layouts/StaticPage.astro';
+import CopyField from '../components/CopyField.astro';
 import { MCP_SETUP, MCP_URL } from '../lib/toolbar';
 import { SITE_URL } from '../lib/seo';
 ---
@@ -15,12 +16,14 @@ import { SITE_URL } from '../lib/seo';
     The server is read-only, needs no account or key, and stores nothing. It speaks MCP over HTTP at <code>{MCP_URL}</code> and offers three tools:
     <code>list_calculators</code>, <code>describe_calculator</code> (inputs, defaults and units) and <code>calculate</code>.
   </p>
-  <p>Claude Code, one command:</p>
-  <pre tabindex="0"><code>{MCP_SETUP.claudeCode}</code></pre>
-  <p>
-    Clients that read an <code>mcpServers</code> file (key names vary by client, the address is what matters):
-  </p>
-  <pre tabindex="0"><code>{MCP_SETUP.json}</code></pre>
+  <CopyField id="agents-mcp" label="Server address" value={MCP_URL} copyLabel="Copy address" />
+  <CopyField id="agents-cmd" label="Claude Code, one command" value={MCP_SETUP.claudeCode} />
+  <CopyField
+    id="agents-json"
+    label="Clients that read an mcpServers file (key names vary by client, the address is what matters)"
+    value={MCP_SETUP.json}
+    multiline
+  />
 
   <h2>Read the site without a browser</h2>
   <ul>
